@@ -66,6 +66,8 @@ Donut is a shellcode generation tool that creates x86 or x64 shellcode payloads 
 
 Donut is currently at version 0.9 (Beta). Please share any issues or suggestions with us as Issues on GitHub. Once we have received feedback, we will release version 1.0. A link to the compiled v0.9 release can be found [here](https://github.com/TheWover/donut "Release 0.9").
 
+This is a joint project between Odzhan and TheWover. Odzhan also created a [blog post](https://modexp.wordpress.com/2019/05/10/dotnet-loader-shellcode/) for v0.9 release.
+
 # How it Works
 
 ## Unmanaged Hosting API
