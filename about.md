@@ -8,4 +8,4 @@ Red teaming, adversary emulation, and computer security.
 
 ### Contact me
 
-[thewover@protonmail.com](thewover@protonmail.com)
+[thewover@protonmail.ch](thewover@protonmail.ch)
