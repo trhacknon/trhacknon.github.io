@@ -64,7 +64,7 @@ The most flexible type of payload that meets those requirements is shellcode. Bu
 
 Donut is a shellcode generation tool that creates x86 or x64 shellcode payloads from .NET Assemblies. This shellcode may be used to inject the Assembly into arbitrary Windows processes. Given an arbitrary .NET Assembly, parameters, and an entry point (such as Program.Main), it produces position-independent shellcode that loads it from memory. The .NET Assembly can either be staged from a URL or stageless by being embedded directly in the shellcode. Either way, the .NET Assembly is encrypted with the Chaskey block cipher and a 128-bit randomly generated key. After the Assembly is loaded through the CLR, the original reference is erased from memory to deter memory scanners. The Assembly is loaded into a new Application Domain to allow for running Assemblies in disposable AppDomains.
 
-Donut is currently at version 0.9 (Beta). Please share any issues or suggestions with us as Issues on GitHub. Once we have received feedback, we will release version 1.0. A link to the compiled v0.9 release can be found [here](https://github.com/TheWover/donut "Release 0.9").
+Donut is currently at version 0.9 (Beta). Please share any issues or suggestions with us as Issues on GitHub. Once we have received feedback, we will release version 1.0. A link to the compiled v0.9 release can be found [here](https://github.com/TheWover/donut/releases/tag/v0.9 "Release 0.9").
 
 This is a joint project between Odzhan and TheWover. Odzhan also created a [blog post](https://modexp.wordpress.com/2019/05/10/dotnet-loader-shellcode/) for v0.9 release.
 
