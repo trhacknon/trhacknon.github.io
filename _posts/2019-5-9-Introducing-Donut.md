@@ -267,7 +267,7 @@ While useful, there are both false positives and false negatives:
 * False Postiive: There are (few) legitimate uses of the Unmanaged CLR Hosting API. If there weren't, then Microsoft wouldn't have made it. CLR Sentry will notice every unmanaged program that loads the CLR.  
 * False Negatives: This will NOT notice injection of .NET code into processes that already have the CLR loaded. So, no use of the Reflection API and not when donut is used to inject shellcode into managed processes.
 
-Please Note: This is intended **only** as a Proof-of-Concept to demonstrate the anomalous behavior produced by CLR injection and how it may be detected. It should not be used in any way in a production environment.
+Please Note: This is intended **only** as a Proof-of-Concept to demonstrate the anomalous behavior produced by CLR injection and how it may be detected. It should not be used in any way in a production environment. You could perform the same logic with the Image Load event for Sysmon or ETW. They would be easier to scale and integrate with enterprise tooling.
 
 I am not a defender, but the following pseudocode is my attempt at an analytic that follows this logic. The DLLs that are associated with the CLR all start with "msco", such as "mscorlib.dll" and "mscoree.dll". As such, we watch for their loading, then check if the program that loaded them is a valid .NET Assembly.
 
