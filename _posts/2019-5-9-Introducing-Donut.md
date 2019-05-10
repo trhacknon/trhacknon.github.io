@@ -332,6 +332,10 @@ However, as I mentioned, this analytic fails to detect CLR Injection into proces
 3. If there are not any managed processes, then all processes are potential targets.
 4. Either way, inject / migrate into the process that is most likely to naturally produce network traffic and live the longest.
 
+Or to put it simply:
+
+* Whenever possible, prefer to inject .NET Assemblies into processes that already have the CLR loaded.
+
 # Conclusion
 
 Offensive .NET tradecraft is faced with several important challenges. One of them is the lack of means to inject into remote processes at will. While this can normally be performed with shellcode, there is no way to produce shellcode that can run a .NET Assembly directly on hardware. Any shellcode that runs a .NET Assembly must first bootstrap the Common Language Runtime and load the Assembly through it. Enter Donut. With Donut, we now have a framework for generating flexible shellcode that loads a .NET Assembly from memory. This can be combined with existing techniques and tooling to advance tradecraft in a number of ways. Hopefully, this will break down the current barriers in .NET-based exploitation and provide tool designers with a foundation for crafting more excellent tools.
