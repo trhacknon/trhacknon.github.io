@@ -275,10 +275,12 @@ I am not a defender, but the following pseudocode is my attempt at an analytic t
 void CLR_Injection:
     WHEN Image_Load event:
         if event.Module.Name contains "msco*.dll":
+        {
             if !(IsValidAssembly(event.Process.FilePath)):
             {
                 print "A CLR has been injected into " + event.Process.Id
             }
+        }
 ```
 
 The snippet below represents my implementation of this logic in C#. The full code can be found in ModuleMonitor.
