@@ -3,7 +3,7 @@ layout: post
 title: Donut v0.9.1 "Apple Fritter" - Dual-Mode Shellcode, AMSI, and More
 ---
 
-*TLDR: Version v0.9.1 "Apple Fritter" of Donut has been released, including dual-mode (AMD64+x86) shellcode, AMSI bypassing for .NET v4.8, automatic version detection of payloads, better support for Program.Main().*
+*TLDR: Version v0.9.1 "Apple Fritter" of Donut has been released, including dual-mode (AMD64+x86) shellcode, AMSI bypassing for .NET v4.8, automatic version detection of payloads, and better support for Program.Main().*
 
 # Introduction
 
