@@ -32,7 +32,7 @@ Odzhan knew an old trick for crafting shellcode that can run in either x86 or x6
 
 And the logic:
 
-```assembly
+```
 0x31C0  xor eax, eax        // null eax
 0x48    dec eax             // decrement eax to produce an underflow
 0x0F88  js dword x86_code   // jump to x86 payload if we are in a WOW64 process
