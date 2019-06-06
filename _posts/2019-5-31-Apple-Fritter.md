@@ -45,14 +45,20 @@ There are two ways this code can execute.
 If the process is WOW64 (x86):
 
 1) ```eax``` will be nulled.
+
 2) ```eax``` will be decremented, resulting in an underflow.
+
 3) Since the sign flag is set from the underflow, the condition for the jump is satisfied. Jump to the x86 shellcode.
+
 
 If the process is x64:
 
 1) ```eax``` will be nulled.
+
 2) ```0x48``` is an REX prefix for the next instruction
+
 3) The previous REX prefix is not valid for the ```js``` instruction. As such, nothing happens.
+
 4) Since the x64 PIC is immediately following the previous instruction in memory, ```eip``` is now pointing at the first instruction in the x64 PIC. It now executes.
 
 Starting in the v0.9.1 "Apple Fritter" release, dual-mode shellcode is the default. You may still tell Donut to produce x86 or x64 shellcode, rather than AMD64+x86.
