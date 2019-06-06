@@ -42,7 +42,7 @@ And the logic:
 
 There are two ways this code can execute.
 
-If the process is WOW64 (x86):
+**If the process is WOW64 (x86):**
 
 1) ```eax``` will be nulled.
 
@@ -51,7 +51,7 @@ If the process is WOW64 (x86):
 3) Since the sign flag is set from the underflow, the condition for the jump is satisfied. Jump to the x86 shellcode.
 
 
-If the process is x64:
+**If the process is x64:**
 
 1) ```eax``` will be nulled.
 
