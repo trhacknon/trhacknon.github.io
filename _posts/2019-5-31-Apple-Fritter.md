@@ -100,7 +100,7 @@ However, their implementation of AMSI integration is subject to memory patching 
 
 Odzhan wrote a [blog post](https://modexp.wordpress.com/2019/06/03/disable-amsi-wldp-dotnet/) detailing each of the AMSI bypasses we added to Donut. It is important to note that there could be many more. I believe that anyone who sits down to do the research and develop an AMSI bypass will probably come up with their own slightly different variant. As long as Microsoft continues to rely on calling DLL functions from user-level memory space, AMSI will be subject to memory patching bypasses.
 
-The result looks like the picture below. I safely injected SafetyKatz into ```notepad.exe``` using Donut shellcode, even thought AMSI was used. Defender shows no detections.
+The result looks like the picture below. I safely injected SafetyKatz into ```notepad.exe``` using Donut shellcode, even though AMSI was used. Defender shows no detections.
 
 ![_config.yml]({{ site.baseurl }}/images/Apple_Fritter/amsi_is_dead.PNG)
 
