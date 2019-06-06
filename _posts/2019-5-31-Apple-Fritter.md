@@ -128,7 +128,7 @@ This system not only makes it easy to change the bypass technique, but also redu
 
 ## Device Guard Dynamic Code Prevention Bypass
 
-Windows Defender Device Guard includes an optional policy for disabling dynamically-generated .NET code from executing. Because it was mixed-in with the AMSI scanning code, we went ahead and disabled it too. Not sure if that will help anyone, but hey it was easy. ¯\_(ツ)_/¯
+Windows Defender Device Guard includes an optional policy for disabling dynamically-generated .NET code from executing. Because it was mixed-in with the AMSI scanning code, we went ahead and disabled it too. Not sure if that will help anyone, but hey it was easy. ```¯\_(ツ)_/¯```
 
 ![_config.yml]({{ site.baseurl }}/images/Apple_Fritter/code_integrity.png)
 
