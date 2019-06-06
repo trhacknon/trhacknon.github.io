@@ -108,7 +108,7 @@ I must strongly emphasize, the fact that 4.8 AMSI can be bypassed like in PowerS
 
 ### Modular Bypass System
 
-As we researched bypasses for AMSI, it became clear that there is many ways to do it. It would be silly to force users of Donut to have to use whatever we came up with. As such, we ensured that you may easily add your own bypass or customize one of ours. The bypasses are defined in ```payload/bypass.c```. You may either modify our C code, or add your own. Each bypass implements the same ```BOOL DisableAMSI(PDONUT_INSTANCE inst)``` function and is wrapped in an ```#ifdef BYPASS_NAME``` preprocessor directive. To change which bypass is used, change the Makefile to define the bypass name specified by the directive.
+As we researched bypasses for AMSI, it became clear that there are many ways to do it. It would be silly to force users of Donut to have to use whatever we came up with. As such, we ensured that you may easily add your own bypass or customize one of ours. The bypasses are defined in ```payload/bypass.c```. You may either modify our C code, or add your own. Each bypass implements the same ```BOOL DisableAMSI(PDONUT_INSTANCE inst)``` function and is wrapped in an ```#ifdef BYPASS_NAME``` preprocessor directive. To change which bypass is used, change the Makefile to define the bypass name specified by the directive.
 
 For example, you could change the relevant line in ```payload/Makefile.msvc``` from
 
@@ -124,7 +124,7 @@ cl -DBYPASS_AMSI_B -DBYPASS_WLDP_A -Zp8 -c -nologo -Os -O1 -Gm- -GR- -EHa -Oi -G
 
 In order to switch from using BypassA to BypassB.
 
-This system not only makes it easy to change the bypass technique, but also reduces the size, complexity, and signaturability of the shellcode by ensuring that code you are not using is present in the PIC to be found by AV/EDR.
+This system not only makes it easy to change the bypass technique, but also reduces the size, complexity, and signaturability of the shellcode by ensuring that code you are not using is not present in the PIC to be found by AV/EDR.
 
 ## Device Guard Dynamic Code Prevention Bypass
 
