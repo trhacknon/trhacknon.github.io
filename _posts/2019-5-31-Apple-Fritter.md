@@ -90,7 +90,7 @@ When you try to load a .NET Assembly from memory that is known to be malicious, 
 
 ![_config.yml]({{ site.baseurl }}/images/Apple_Fritter/donut_AMSI.PNG)
  
-However, their implementation of AMSII integration is subject to memory patching bypasses in the same way that PowerShell is. We developed on existing research, produced some custom bypasses, and added a modular bypass system to Donut that lets you choose which technique you would like to use.
+However, their implementation of AMSI integration is subject to memory patching bypasses in the same way that PowerShell is. We developed on existing research, produced some custom bypasses, and added a modular bypass system to Donut that lets you choose which technique you would like to use.
 
 Odzhan wrote a [blog post](https://modexp.wordpress.com/2019/06/03/disable-amsi-wldp-dotnet/) detailing each of the AMSI bypasses we added to Donut. It is important to note that there could be many more. I believe that anyone who sits down to do the research and develop an AMSI bypass will probably come up with their own slightly different variant. As long as Microsoft continues to rely on calling DLL functions from user-level memory space, AMSI will be subject to memory patching bypasses.
 
