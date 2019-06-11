@@ -11,9 +11,17 @@ There is a fundamental flaw with using .NET Assemblies as the unit of execution 
 
 ## Advantages of Native Code
 
+Using native (unmanaged) languages such as C and C++ provide several significant advantages for offensive tooling. Namely:
 
+* The code they produce can run directly on the hardware of the machine running it. Other than a loader, no additional interpretation is required to execute native code.
+* Native code cannot (reliably) be directly decompiled to the exact source code used to create it. Sure, there are decompilers (HexRays, Ghidra, etc.). But their output is only a best guess at the original code, not a copy. Dissassembly and decompilation of machine code presents many challenges, especially when done at scale accross an enterprise where many programs are run ad-hoc by users. This slows down the time involved in capturing and reverse engineering payloads, especially when advanced cryptors, packers, or obfuscators are used to protect the payload.
+* 
 
 ## Advantages of Managed (.NET) Code
+
+* Compatability: 
+* Interoperability:
+* Capability:
 
 ## Why Not Both?
 
@@ -37,7 +45,7 @@ Calling a Mixed Assembly an "Assembly" is a bit misleading. If it were just an A
 
 # A Case Study
 
-A friend of mine was working on a persistence tool. Once it does its thang, the result is that a DLL is loaded from disk. For that capabilitiy to be useful, you need to craft a DLL that implements ```DLLMain```. That way, your malicious code will run when the DLL is loaded with ```LoadLibrary```. For his demonstration of the tool, he wanted to be able to load SILENTTRINITY (mostly because it's cool). Well, that produces a challenge. SILENTTRINITY is a a .NET-based C2 Framework. Its stager takes the form of a managed EXE or DLL that is usually loaded from memory through Assembly.Load(). But C# (the .NET language used by SILENTTRINITY) does not provide a functionality comparable to ```DLLMain```. Sure, there are some hacky ways to accomplish something similar, but they are as I mentioned: a bit hacky. And, because there's a ```.export``` keyword in the Common Intermediate Language, you can dissassemble .NET Assemblies written in C#, modify one of their functions to be exported in a similar way to C/C++, and then reassemble the .NET Assembly. But that requires you to modify each .NET Assembly payload before you use it. Which is annoying, so let's not. And even [if you did that automatically](https://www.codeproject.com/Articles/37675/Simple-Method-of-DLL-Export-without-C-CLI), then you would have to drop a raw, unwrapped SILENTTRINITY DLL to disk, which is just asking to be detected by AV. As an alternative, let's see if we can design something that avoids these problems.
+A friend of mine was working on a persistence tool. Once it does its thang, the result is that an attacker's DLL is loaded from disk. For that capabilitiy to be useful, you need to craft a DLL that implements ```DLLMain```. That way, your malicious code will run when the DLL is loaded with ```LoadLibrary```. For his demonstration of the tool, he wanted to be able to load SILENTTRINITY (mostly because it's cool). Well, that produces a challenge. SILENTTRINITY is a a .NET-based C2 Framework. Its stager takes the form of a managed EXE or DLL that is usually loaded from memory through Assembly.Load(). But C# (the .NET language used by SILENTTRINITY) does not provide a functionality comparable to ```DLLMain```. Sure, there are some hacky ways to accomplish something similar, but they are as I mentioned: a bit hacky. And, because there's a ```.export``` keyword in the Common Intermediate Language, you can dissassemble .NET Assemblies written in C#, modify one of their functions to be exported in a similar way to C/C++, and then reassemble the .NET Assembly before it is executed. But that requires you to modify each .NET Assembly payload before you use it. Which is annoying, so let's not. And even [if you did that automatically](https://www.codeproject.com/Articles/37675/Simple-Method-of-DLL-Export-without-C-CLI), then you would have to drop a raw, unwrapped SILENTTRINITY DLL to disk, which is just asking to be detected by AV. As an alternative, let's see if we can design something that avoids these problems.
 
 As any good engineering project goes, we'll start with stating our requirements. Whatever the solution, it:
 
@@ -60,7 +68,11 @@ TODO:
 * Show how to embed binary files as resources
 * Clean out the Manager repo
 
-### The Unmanaged Code
+### Concept
+
+### Implementation
+
+#### The Unmanaged Code
 
 ```cpp
 // dllmain.cpp : Defines the entry point for the DLL application.
@@ -106,7 +118,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE h, DWORD reasonForCall, void* resv)
 
 ```
 
-### The Managed Code
+#### The Managed Code
 
 Let's get this out of the way: C++/CLI is ugly. It's disgusting. It's hideous. Look at that monstrosity of syntax below.
 
@@ -161,9 +173,9 @@ void LaunchDll(
 }
 ```
 
-But, anyway, it works. Allow me to explain.
+But, anyway, it works. Allow me to explain:
 
-### Creating a Testing Program
+#### WTF?
 
 
 
@@ -185,8 +197,6 @@ If you are using a new project and want to add a new managed code .cpp, you must
 
 ### Staged or Stageless?
 
-
-
 Instructions for how to add a payload as a resource with Visual Studios.
 
 1. Create a solution as a Visual C++ project in Visual Studios.
@@ -198,40 +208,29 @@ Instructions for how to add a payload as a resource with Visual Studios.
 5. Open the main.cpp source file. Make sure that the type and name in in the FindResourceA() function call reflect the correct resource name and type. To confirm the name and type of the resource, open the .rc file under Resource Files in the Solution Explorer and look at the left-hand pane.
 6. The resource should now be embedded. It will be passed to the Assembly.Load function in a raw byte[] format.
 
+#### Creating a Testing Program
+
+TestLoad
+
+#### Testing the Stager
+
+### How Could This Be Extended?
+
+As an EXE. As a reflective DLL.
+
+## OPSec
 
 ## Opening it Up in dnSpy
 
-## Assembly.Load
-
-
-
+## Bypassing AMSI in .NET v4.8
 
 ## Detecting CLR Injection
 
-One of the companion projects for donut is ModuleMonitor. It uses WMI Event Win32_ModuleLoadTrace to monitor for module loading. It provides filters, detailed data, and has an option to monitor for CLR Injection attacks.
+If you have been reading my blog posts about Donut, you may be familiar with ModuleMonitor. It uses WMI Event Win32_ModuleLoadTrace to monitor for module loading. For each module that is loaded, it captures information about the process that loaded the module.
 
-The CLR Sentry option follows some simple logic: If a process loads the CLR, but the program is not a .NET program, then the CLR has been injected into it.
+IT has a "CLR Sentry" option that follows some simple logic: If a process loads the CLR, but the program is not a .NET Assembly, then a CLR has been injected into it. This technique can be used to detect C++/CLI stagers for .NET Assemblies. Unfortunately, this means that it will detect ALL programs written in C++/CLI as malicious because they are all represented as Mixed Assemblies.
 
-While useful, there are both false positives and false negatives:
-
-* False Postiive: There are (few) legitimate uses of the Unmanaged CLR Hosting API. If there weren't, then Microsoft wouldn't have made it. CLR Sentry will notice every unmanaged program that loads the CLR.  
-* False Negatives: This will NOT notice injection of .NET code into processes that already have the CLR loaded. So, no use of the Reflection API and not when donut is used to inject shellcode into managed processes.
-
-Please Note: This is intended **only** as a Proof-of-Concept to demonstrate the anomalous behavior produced by CLR injection and how it may be detected. It should not be used in any way in a production environment.
-
-I am not a defender, but the following pseudocode is my attempt at an analytic that follows this logic. The DLLs that are associated with the CLR all start with "msco", such as "mscorlib.dll" and "mscoree.dll". As such, we watch for their loading, then check if the program that loaded them is a valid .NET Assembly.
-
-```
-void CLR_Injection:
-    WHEN Image_Load event:
-        if event.Module.Name contains "msco*.dll":
-            if !(IsValidAssembly(event.Process.FilePath)):
-            {
-                print "A CLR has been injected into " + event.Process.Id
-            }
-```
-
-The snippet below represents my implementation of this logic in C#. The full code can be found in ModuleMonitor.
+ModuleMonitor uses the following implementation of this logic in C#. The full code can be found in the ModuleMonitor repo.
 
 ```csharp
 //CLR Sentry
@@ -265,6 +264,8 @@ The snippet below represents my implementation of this logic in C#. The full cod
         }
 ```
 
+When the detection is successful, you should get a detection that looks like the following.
+
 ![_config.yml]({{ site.baseurl }}/images/Introducing_Donut/detected.png)
 
 It is important to note that this behaviour represents all CLR Injection techniques, of which there are several. This detection should work for donut, as well as other tools such as Cobalt Strike's 'execute-assembly' command.
@@ -272,5 +273,3 @@ It is important to note that this behaviour represents all CLR Injection techniq
 ## OpSec Considerations
 
 # Conclusion
-
-Offensive .NET tradecraft is faced with several important challenges. One of them is the lack of means to inject into remote processes at will. While this can normally be performed with shellcode, there is no way to produce shellcode that can run a .NET Assembly directly on hardware. Any shellcode that runs a .NET Assembly must first bootstrap the Common Language Runtime and load the Assembly through it. Enter Donut. With Donut, we now have a framework for generating flexible shellcode that loads a .NET Assembly from memory. This can be combined with existing techniques and tooling to advance tradecraft in a number of ways. Hopefully, this will break down the current barriers in .NET-based exploitation and provide tool designers with a foundation for crafting more excellent tools.
