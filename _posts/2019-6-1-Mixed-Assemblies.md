@@ -25,6 +25,8 @@ Using native (unmanaged) languages such as C and C++ provide several significant
 
 ## Why Not Both?
 
+With C++/CLI, you can create a mostly native executable with full access to 
+
 ### C++/CLI
 
 When Visual Studios builds a C++/CLI program, it produces what is called a [Mixed Assembly](https://docs.microsoft.com/en-us/cpp/dotnet/mixed-native-and-managed-assemblies?view=vs-2019).
@@ -55,22 +57,49 @@ As any good engineering project goes, we'll start with stating our requirements.
 * Must execute a stager for our .NET Remote Access Tool
 * Ideally, would execute stager from memory without needing any other file(s)
 * Ideally, could download stager from URL before executing it
-* Ideally, would somehow obfusctate our suspicious code.
+* Ideally, would somehow obfusctate our suspicious code
 
 ## Our Solution
 
 One of the ways to load .NET Assemblies through unmanaged code is to use C++/CLI. What is that, you may ask? It is Visual C++ that can be compiled to CIL rather than native machine code. You may specify that code is either managed or native. Native code is written the same as normal C++. The managed version, however, uses a different syntax. To compile managed C++, you must use the /clr option on the Visual Studios compiler. 
 
+### What the Hell is C++/CLI?
+
+C++/CLI is a legacy version of C++ that was specifically designed to allow for easy interoperability between native C++ and managed .NET code. In fact, that was so much the focus of its design, that it was originally referred to as IJW or, "It Just Works" (lol).
+
+![_config.yml]({{ site.baseurl }}/images/Manager/justworks.jpg)
+
+You may choose on a per-module, per-file, or even per-function basis whether or not your C++ code is managed or native. Rather than using P/Invoke to go from managed -> unmanaged code, you may simply call a managed C++/CLI function from native C++. You may also go the other direction (painfully), allowing you to truly move between managed and unmanaged code at will.
+
+Why would you use it legitimately?: https://stackoverflow.com/questions/1933210/c-cli-why-should-i-use-it 
+
 TODO:
 
 * Put our hardcoded values into a header file
 * Create a new solution for it. Clean it up.
-* Show how to embed binary files as resources
+* Show how to embed binary files as resources (already have the images)
 * Clean out the Manager repo
+* remove history
 
 ### Concept
 
 ### Implementation
+
+Advantage of no direct use of COM or the CLR Hosting APIs to load the CLR. It all happens naturally and legitimately.
+
+### Challenges
+
+The main issue that we will have to overcome is [Loader Lock](https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2019). Because Mixed Assemblies contain native code, they must contend both with the both native Windows Loader and the CLR to be loaded for execution. The Windows loader garauntees that nothing may access code or data in a module before it is initialized. Since the initialization process includes running DllMain, any code in DllMain inherits this protection. As such, Microsoft explicitly tells you not to use any managed code in DllMain. Running managed code requires that the CLR be bootstrapped. If you attempt to do so, you will produce deadlock. The Windows loader has not unlocked the module because DllMain is unfinished, but in order for DllMain to finish, the rest of the module must be unlocked. It turns out, computers are not fond of logical contraditions, and will be rather disappointed with you and refuse to work when asked to perform impossible tasks.
+
+There is a simple solution to this problem: Rather than call managed code directly from DllMain, we will instead create a new thread from a second native function, and then call managed code from that. The new thread will perform two roles.
+
+* Ensure that the parent thread (and process) can continue to execute in the background
+* Ensure that the module can finish initialization, allowing the Windows loader to unlock the process-global critical section
+
+
+### Payload Location
+
+URL or embedded? We will embed it as a resource. In the real world, you should also encrypt it and maybe store it in an image file as a form of stego. This would simulate a legitimate use of PE resources: file icons.
 
 #### The Unmanaged Code
 
