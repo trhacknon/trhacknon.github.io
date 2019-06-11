@@ -1,0 +1,68 @@
+==================================================================
+https://keybase.io/thewover
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://thewover.github.io
+  * I am thewover (https://keybase.io/thewover) on keybase.
+  * I have a public key with fingerprint BB56 08FA 6976 C078 4419  DD32 555E AF97 1A8F C794
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0101a1c5dac4aa993f40a40c81e1a3653fdb0ef024d121eddaa3c685a8ca8af0f0090a",
+      "fingerprint": "bb5608fa6976c0784419dd32555eaf971a8fc794",
+      "host": "keybase.io",
+      "key_id": "555eaf971a8fc794",
+      "kid": "0101a1c5dac4aa993f40a40c81e1a3653fdb0ef024d121eddaa3c685a8ca8af0f0090a",
+      "uid": "3dc783424dd0e46bbc6166d6eaeb1e19",
+      "username": "thewover"
+    },
+    "service": {
+      "hostname": "thewover.github.io",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 1
+  },
+  "ctime": 1560211518,
+  "expire_in": 157680000,
+  "prev": "acdb4def17aefdf3ef2dd956ba805b7758821553823113b54f288dcdd04f3a49",
+  "seqno": 4,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.1.0
+Comment: https://keybase.io/crypto
+
+yMIoAnicrZJbSFRBGMd3026iWVHkQxqcyspUZvbc5iwVRV4gKiMfRFSWOTNz3JO2
+Z9tzVi0TMyMq6EV6iKTLS6bbo5VoaJpmmEQqSVFGRUUPJQVJlF3nWL1Ej83LMN/8
+/7/5fx8zkBTnSfCeBvDpxpaJHu9w39mop/T7+021gm7R/YK/VqhgMxurpMx2AhUm
+FfwCgABiSGSKiYSxpomGBLAECIIMYlGRRYPqgBnAJ1Hog4xSjEWiIBkjghE2gAGA
+BrCQKRhmqJxFwhEz5HCsrssKQAZWNFUhQEWSBDVKRZ8sywwbmgoxMoiqSdwYtGzX
+wcPp2GbZpsVr/BCYifcP/X/OHZ3BiZSoSJS4mgImKbpOFKgoVGGY6ZyouUKbRUJ4
+L+NqJ8iqrSoWEeoyBV6tMglzB+t28pciu9x0glH9V1fhiOVYxKrk90HHCdt+1+/s
+D7uGaqYHfqMCuhmifJrcwQm2aYUEP+RK4pguG/LJ+iCUIcoUWE3YjLCA6SpkVUGA
+L/cdVsWRmFBdosyAKmYGNURm+CjVZEXHCMi6qsoI+aAsi8gnQijqsmT4EKKET0Ay
+RCy5PdtsX8gS/BKPics50jbLQ9iJRphQd7O3NN7jTfDMmT3L/WWehPkL//y9e/vm
+Tsf1PVodn5w0UXB/unNBILf/ddOunPkvmvJn3X1WumQwvKLjyqvrae+in/teB5SG
+RvXz4Qfdax5/GIs9iJwvzE4dXp5bnVIZO1+cN5ldnVVS8/zJSPPxLFbcsKzosWN6
+B3ujwWNvVhbmpRzCWV874utzbu5+Pzl2at6RL6kf79gn1nkvxa0KtmUU9JekpXdt
+W27W317bGD9a1bVmunU0JfWA99aespNlA3NeXvvU/nDvRVK0IZZ8YST5avjVlsme
+oYOL/FN4cGp9YEhP/9B+ZUfGpbp5rTdaxvM7PZcfNm+VY+TL+Mh2cPRMt10oCd9I
+T8HixB9tiWjz86UTKPHctql3b3cm/gSkXEjl
+=z89z
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/thewover
+
+==================================================================
