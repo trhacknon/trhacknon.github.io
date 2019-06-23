@@ -41,9 +41,13 @@ On one hand, Mixed Assemblies contain native code and use the PE format. As such
 
 So, you should probably not think of them as either one, and instead just consider them *their own thing.*
 
-### How They (Don't) Work with the Reflection API
+### How They (sort of) Work with the Reflection API
 
-Calling a Mixed Assembly an "Assembly" is a bit misleading. If it were just an Assembly, then you could load it using the Reflection API and Assembly.Load. However, that will not work. That is the major con of using Mixed Assemblies. While they can certainly be loaded reflectively (just like any other unmanaged EXE or DLL)
+You may now be thinking: If a Mixed Assembly is an "Assembly", does that mean that I can load it from memory using Assembly.Load(byte[])? Unfortunately not. :-(
+
+Mixed Assemblies may be loaded from disk using the Reflection API, but not from memory. The `Assembly.LoadFrom` and `Assembly.LoadFile` functions work fine when the Mixed Assembly is the same architecture (x86/x64) as the loading process. They can even execute code from DllMain when loaded into a process this way. However, because of [reasons](https://stackoverflow.com/questions/2945080/how-do-i-dynamically-load-raw-assemblies-that-contains-unmanaged-codebypassing), Mixed Assemblies cannot be loaded from memory. Theoretically, you could write a reflective loader that loads the DLL in a similar was as Stephen Fewer's Reflective DLL Injection, but I will leave that as an exercise to the reader. ;-) 
+
+Even with this limitation, the Reflection API can be useful for Mixed Assemblies. If you wish to manually execute your stager from disk, you may do so. And, you may use all of the normal APIs for inspecting managed components at runtime. But don't expect to get away with all of the Assembly.Load(byte[]) abuse that you normally do. 
 
 # A Case Study
 
@@ -209,6 +213,13 @@ But, anyway, it works. Allow me to explain:
 
 
 ### Getting Visual Studios to Cooperate
+
+You don't have to do this anymore. I figured out the correct way you're supposed to do this. :-P
+
+In the New Project dialog, under Installed Templates, select "Visual C++" > "CLR", and then either the Console Application template for EXEs or the Class Library template for DLLs.
+
+* Notes on how to designate a file as not /clr.
+* Change Precompiled Headers to Create rather than Yes.
 
 It takes a bit of convincing to get Visual Studios to use C++/CLI. Just inserting the code above into a project will result in compiler errors. As such, follow the guide below to ensure that your project can compile:
 
