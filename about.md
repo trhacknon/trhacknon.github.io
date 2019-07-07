@@ -12,4 +12,6 @@ RSS Feed: https://thewover.github.io/rss.xml
 
 Twitter: [https://twitter.com/TheRealWover](https://twitter.com/TheRealWover)
 
-[thewover@protonmail.ch](thewover@protonmail.ch)
+Keybase: [https://keybase.io/thewover](https://keybase.io/thewover)
+
+E-Mail: [thewover@protonmail.ch](thewover@protonmail.ch)
