@@ -6,7 +6,7 @@ permalink: /about/
 
 Red teaming, adversary emulation, and computer security.
 
-Watch for Releases on my Github Pages repo to subscribe to this blog: [https://github.com/TheWover/TheWover.github.io](https://github.com/TheWover/TheWover.github.io)
+RSS Feed: https://thewover.github.io/rss.xml
 
 ### Contact me
 
