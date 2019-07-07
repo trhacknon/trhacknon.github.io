@@ -6,7 +6,7 @@ permalink: /about/
 
 Red teaming, adversary emulation, and computer security.
 
-RSS Feed: https://thewover.github.io/rss.xml
+RSS Feed: [https://thewover.github.io/rss.xml](https://thewover.github.io/rss.xml)
 
 ### Contact me
 
