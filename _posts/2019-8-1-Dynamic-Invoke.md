@@ -45,13 +45,15 @@ title: Enabling Covert Operations - 0: Dynamic Invocation & Modular Shellcode In
 
 ### Who Should Choose How A Tool Can Be Used: The Designer or the Operator?
 
-## Implementation
+## Implementation in SharpSploit
 
 ### Remote Thread Creation
 
 ### APC Injection
 
 ### Threat Hijacking
+
+### General Remote Injection
 
 # Conclusions
 
