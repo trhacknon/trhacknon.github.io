@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Enabling Covert Operations - 0: Dynamic Invocation & Modular Shellcode Injection
+title: Enabling Covert Operations - 0: Dynamic Invocation
 ---
 
 *TLDR: The first in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as three modular C# implementations of convert remote injection techniques.*
@@ -24,6 +24,11 @@ title: Enabling Covert Operations - 0: Dynamic Invocation & Modular Shellcode In
 ### Manual Mapping
 
 ## How?
+
+---
+layout: post
+title: Enabling Covert Operations - 1: Modular Shellcode Injection
+---
 
 # Covert Remote Injection
 
@@ -54,6 +59,16 @@ title: Enabling Covert Operations - 0: Dynamic Invocation & Modular Shellcode In
 ### Threat Hijacking
 
 ### General Remote Injection
+
+---
+layout: post
+title: Enabling Covert Operations - 2: Manually Mapping DLLs (Unmanaged Reflection)
+---
+
+---
+layout: post
+title: Enabling Covert Operations - 3: Easily Using Arbitrary Syscalls from Managed Code
+---
 
 # Conclusions
 
