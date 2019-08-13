@@ -9,6 +9,8 @@ title: Enabling Covert Operations - 0: Dynamic Invocation
 
 ## Not Actually New
 
+* P/Invoke Innocuous API calls to force a library to load. Then use GetModuleHandle & GetProcAddress.
+
 ### A Legitimate Technique
 
 ### Delegates
@@ -64,6 +66,27 @@ title: Enabling Covert Operations - 1: Modular Shellcode Injection
 layout: post
 title: Enabling Covert Operations - 2: Manually Mapping DLLs (Unmanaged Reflection)
 ---
+Create a set of classes for discovering and using symbols in unmanaged DLLs. Have an `UnmanagedPE` class with:
+
+* UnmanangedPE(byte[] PEBytes)
+* UnmanagedPE.Import(byte[] PEBytes) //
+* private Unmanaged.SymbolStore //public get
+
+* SymbolStore
+* private byte[] SymbolStore.PEBytes // with public get
+* public bool SymbolStore.Discover(byte[] PEBytes) //Fills the store with Symbols
+* private Symbol[] SymbolStore.Symbols //Set of symbols advertised by the IAT
+* public Symbol SymbolStore.FindSymbol(string symbolName)
+
+* Symbol
+* public string[] Symbol.Name //Symbol names(s)
+* public delegate Symbol.Signature //Delegate
+* public int Symbol.RelativeOffset //Offset from the base address of the module
+* public IntPtr Symbol.Ptr //Absolute virtual address
+
+* Import everything in the IAT
+* Function Hashing (Maru)
+* Manually Map DLL
 
 ---
 layout: post
@@ -73,8 +96,3 @@ title: Enabling Covert Operations - 3: Easily Using Arbitrary Syscalls from Mana
 # Conclusions
 
 Next up, how to use D/Invoke to use exported functions from memory-mapped unmanaged DLLs... entirely from memory. Completely bypasses API Hooking and enables using DLLs reflectively.
-
-* Import everything in the IAT
-* Function Hashing (Maru)
-* P/Invoke Innocuous API calls to force a library to load. Then use GetModuleHandle & GetProcAddress.
-* Manually Map DLL
