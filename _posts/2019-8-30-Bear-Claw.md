@@ -17,14 +17,14 @@ If you have wondered why we have not yet release v1.0, it is because we went dow
 
 ![_config.yml]({{ site.baseurl }}/images/Bear_Claw/rabbit.gif)
 
-We realized that, fundamentally, Donut is not just a tool for generating shellcode from .NET Assemblies but, because of the way it was designed, can be used as a framework for generating shellcode from arbitrary payload types. It is composed of the following elements:
+We realized that, fundamentally, Donut is not just a tool for generating shellcode from .NET Assemblies but can also be used as a framework for generating shellcode from arbitrary payload types. It is composed of the following elements:
 
-* N # of loaders for specific payload types
+* N # of loaders for specific payload types.
 * `Payload.c`, which determines the payload type, loads it with the appropriate loader logic, and performs other functionalities such as decrypting the payload, running bypasses, and cleaning up memory.
 * `Exe2h.c`, which converts payload.exe into Position Indpendant Code.
 * `Donut.c`, the generator that transforms your payload into a Donut Module (your payload, and everything about it), creates a Donut Instance (an encrypted data structure that is the unit of execution for the Donut loader), and the PIC of `Payload.exe` with a Donut Config (tells the loader where to find the Instance) in order to produce the final shellcode.
 
-To demonstrate the capabilities of this framework, we added several new Module types. All of them are types of payloads that enable related tradecraft to generating shellcode from .NET Assemblies. At this time, we do not plan on adding additional module types to Donut. Those included in this release are sufficient to demonstrate the potential of the framework. With the examples and documentation that we have provided, you should have everything that you need to integrate a new loader and generate shellcode from your favorite type of payload.
+To demonstrate the capabilities of this framework, we added several new Module types. All of them are types of payloads that enable similar tradecraft to generating shellcode from .NET Assemblies. At this time, we do not plan on adding additional module types to Donut. Those included in this release are sufficient to demonstrate the potential of the framework. With the examples and documentation that we have provided, you should have everything that you need to integrate a new loader and generate shellcode from your favorite type of payload.
 
 ## VBScript/JScript (IActiveScript)
 
@@ -40,6 +40,14 @@ To demonstrate the capabilities of this framework, we added several new Module t
 
 # Donut API
 
+Finalized the API. Should make it easier to add 
 
+# Python Bindings
 
+Demonstrating this API is a new Python binding for Donut written by Marcello Salvati ([byt3bl33der](https://twitter.com/byt3bl33d3r)).
 
+# Conclusion
+
+What's next?
+
+Taking a bit of a break until September October. Both Odzhan and I are working on seperate process injection libraries. His will be an awesome library of techniques. Mine will be a small set of implementations for SharpSploit that are designed to be as reliable, safe, and flexible as possible.
