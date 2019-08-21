@@ -42,6 +42,10 @@ To demonstrate the capabilities of this framework, we added several new Module t
 
 Finalized the API. Should make it easier to add 
 
+## Command Changes
+
+* Option to not execute if the bypasses fail for any reason. OpSec for if they block you from disabling AMSI.
+
 # Python Bindings
 
 Demonstrating this API is a new Python binding for Donut written by Marcello Salvati ([byt3bl33der](https://twitter.com/byt3bl33d3r)).
