@@ -46,11 +46,11 @@ I feel that I must bring up the question: Is this useful? Honestly, I'm not sure
 
 ## Unmanaged DLLs / EXEs
 
-IF you are a more normal person, you may want to execute unmanaged DLLs and EXEs instead.
+If you are a more normal person, you may want to execute unmanaged DLLs and EXEs instead.
 
 Using the standard format of Windows executables, unmanaged [PE files](https://blog.kowalczyk.info/articles/pefileformat.html) are a simple unit of execution for exploits and post-exploitation payloads. However, their severe disadvantage is that they are designed to be run from disk by the Windows loader. Modern offensive tradecraft hopes to presume that all payloads are run from memory, rather than from disk. As such, there is a long history of tool creators crafting various means by which to load PEs from memory. Some people convert them to shellcode, others write PE loaders, we have done both at the same time. We wrote a PE loader, that is itself converted to shellcode. Your PE is wrapped in an encrypted Donut Module and can be loaded from memory like any other Module type. 
 
-By default, the PE loader will execute whatever the Entry Point of your executable is. For EXEs, that is the main entry point. For DLLs, that would be `DLLMain` with `DLL_PROCESS_ATTACH`. For DLLs, you may optionally specify an exported function and pass in parameters as strings.
+By default, the PE loader will execute whatever the Entry Point of your executable is (as specified by the PE headers). For EXEs, that is the main entry point. For DLLs, that would be `DLLMain` with `DLL_PROCESS_ATTACH`. For DLLs, you may optionally specify an exported function and pass in parameters as strings.
 
 *TODO: Add an image and example of this!*
 
@@ -62,7 +62,7 @@ If you would like to learn more about how this works, you can read [this blog po
 
 I must state a very important caveat for this PE Loader: *We run whatever code you tell us to run. Whether that code is reliable is up to you.*
 
-There are inherant dangers to injecting PE files into processes. DLLs are usually not very dangerous, but EXEs are risky. If your EXE tries to use any Windows subsystem or exit the process, *it will do exactly that.* So, if you inject an EXE into a GUI process (one with existing windows) that was designed to be used as a console application and it therefore attempts to use the subsystems for console output, it may crash the process. The reverse is also true. Simply put, Your Mileage May Vary with injecting PE files. We cannot provide you with any protections or extra reliability when we execute your code. Generating the shellcode is up to us. Injecting it safely is up to you. :-) 
+There are inherant dangers to injecting PE files into processes. DLLs are usually not very dangerous, but EXEs are risky. If your EXE tries to use any Windows subsystem or exit the process, *it will do exactly that.* None of the safety mechanisms in .NET exist when executing unmanaged code. So, if you inject an EXE into a GUI process (one with existing windows) that was designed to be used as a console application and it therefore attempts to use the subsystems for console output, it may crash the process. The reverse is also true. Simply put, Your Mileage May Vary with injecting PE files. We cannot provide you with any protections or extra reliability when we execute your code. Generating the shellcode is up to us. Injecting it safely is up to you. :-) 
 
 If you would like to learn more about how this works, you can read [this blog post](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL") by Odzhan.
 
