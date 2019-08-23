@@ -38,6 +38,8 @@ The `Microsoft.XMLDOM` COM object allows for XSL transformation. It can either e
 
 I feel that I must bring up the question: Is this useful? Honestly, I'm not sure that it is. But it was easy and we got it working before the `IActiveScript` loader, so why throw out the functionality? If for some strange reason you DO want to execute XSL files through shellcode, then that is now a thing that you can do. You strange, strange person.
 
+![_config.yml]({{ site.baseurl }}/images/Bear_Claw/strange.gif)
+
 ## Unmanaged DLLs / EXEs
 
 [an article](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL")
