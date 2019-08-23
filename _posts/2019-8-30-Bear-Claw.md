@@ -28,6 +28,8 @@ To demonstrate the capabilities of this framework, we added several new Module t
 
 ## VBScript/JScript (IActiveScript)
 
+*TODO: Add an image and example of this!*
+
 If you would like to learn more about how this works, you can read [the related blog post](https://modexp.wordpress.com/2019/07/21/inmem-exec-script/ "Shellcode: In-Memory Execution of JavaScript, VBScript, JScript and XSL") by Odzhan.
 
 ## XSL (Microsoft.XMLDom)
@@ -36,13 +38,33 @@ XSL files are XML files that can contain executable scripts. Theoretically, they
 
 The `Microsoft.XMLDOM` COM object allows for XSL transformation. It can either execute XSL [from disk or from memory](https://twitter.com/TheRealWover/status/1137382984418516992), containing JScript, VBScript, or C#. For v0.9.2 of Donut, we have created a module type that utilizes this COM object to load and execute XSL files from memory. Anything script that can normally execute through that COM object should be viable as a payload for Donut. _Please note, there are slight differences in how `Microsoft.XMLDOM` and WMIC.exe transform XSL that I have not fully explored._ If you would like to learn more about how this works, you can read [the related blog post](https://modexp.wordpress.com/2019/07/21/inmem-exec-script/ "Shellcode: In-Memory Execution of JavaScript, VBScript, JScript and XSL") by Odzhan.
 
-I feel that I must bring up the question: Is this useful? Honestly, I'm not sure that it is. But it was easy and we got it working before the `IActiveScript` loader, so why throw out the functionality? If for some strange reason you DO want to execute XSL files through shellcode, then that is now a thing that you can do. You strange, strange person.
+*TODO: Add an image and example of this!*
+
+I feel that I must bring up the question: Is this useful? Honestly, I'm not sure that it is. But it was easy and we got it working as a script execution vector before the `IActiveScript` loader, so why throw out the functionality? If for some strange reason you DO want to execute XSL files through shellcode, then that is now a thing that you can do. You strange, strange person.
 
 ![_config.yml]({{ site.baseurl }}/images/Bear_Claw/strange.gif)
 
 ## Unmanaged DLLs / EXEs
 
-[an article](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL")
+IF you are a more normal person, you may want to execute unmanaged DLLs and EXEs instead.
+
+Using the standard format of Windows executables, unmanaged [PE files](https://blog.kowalczyk.info/articles/pefileformat.html) are a simple unit of execution for exploits and post-exploitation payloads. However, their severe disadvantage is that they are designed to be run from disk by the Windows loader. Modern offensive tradecraft hopes to presume that all payloads are run from memory, rather than from disk. As such, there is a long history of tool creators crafting various means by which to load PEs from memory. Some people convert them to shellcode, others write PE loaders, we have done both at the same time. We wrote a PE loader, that is itself converted to shellcode. Your PE is wrapped in an encrypted Donut Module and can be loaded from memory like any other Module type. 
+
+By default, the PE loader will execute whatever the Entry Point of your executable is. For EXEs, that is the main entry point. For DLLs, that would be `DLLMain` with `DLL_PROCESS_ATTACH`. For DLLs, you may optionally specify an exported function and pass in parameters as strings.
+
+*TODO: Add an image and example of this!*
+
+If you would like to learn more about how this works, you can read [this blog post](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL") by Odzhan.
+
+### Caution: Beyond Here Be Dragons
+
+![_config.yml]({{ site.baseurl }}/images/Bear_Claw/Lenox_Globe_Dragons.png)
+
+I must state a very important caveat for this PE Loader: *We run whatever code you tell us to run. Whether that code is reliable is up to you.*
+
+There are inherant dangers to injecting PE files into processes. DLLs are usually not very dangerous, but EXEs are risky. If your EXE tries to use any Windows subsystem or exit the process, *it will do exactly that.* So, if you inject an EXE into a GUI process (one with existing windows) that was designed to be used as a console application and it therefore attempts to use the subsystems for console output, it may crash the process. The reverse is also true. Simply put, Your Mileage May Vary with injecting PE files. We cannot provide you with any protections or extra reliability when we execute your code. Generating the shellcode is up to us. Injecting it safely is up to you. :-) 
+
+If you would like to learn more about how this works, you can read [this blog post](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL") by Odzhan.
 
 # Donut API
 
@@ -66,4 +88,6 @@ Also, no more compatability with older versions because they broke stuff.
 
 What's next?
 
-Taking a bit of a break until September October. Both Odzhan and I are working on seperate process injection libraries. His will be an awesome library of techniques. Mine will be a small set of implementations for SharpSploit that are designed to be as reliable, safe, and flexible as possible.
+Taking a bit of a break until September / October. Both Odzhan and I are working on seperate process injection libraries. His will be an awesome library of techniques. Mine will be a small set of implementations for SharpSploit that are designed to be as reliable, safe, and flexible as possible.
+
+I feel that I must note somewhere in this blog post: all of the hard work for this release of Donut was done by other people. :-) I have not had spare time to work on side projects recently, so have only contributed ideas, planning, and documentation to this version. If you are going to thank somebody for the hard work that went into this release, thank Odzhan or byt3bl33d3r. ;-) 
