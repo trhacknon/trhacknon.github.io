@@ -7,9 +7,9 @@ title: Donut v0.9.2 "Bear Claw" - JScript/VBScript/XSL/PE Shellcode, Python Bind
 
 # Introduction
 
-In case you are unaware, [Donut](https://github.com/TheWover/donut "Donut") is a shellcode generation tool created to generate native shellcode payloads from .NET Assemblies. This shellcode may be used to inject the Assembly into arbitrary Windows processes. Given an arbitrary .NET Assembly, parameters, and an entry point (such as Program.Main), it produces position-independent shellcode that loads it from memory. 
+In case you are unaware, [Donut](https://github.com/TheWover/donut "Donut") is a shellcode generation tool created to generate native shellcode payloads from .NET Assemblies. This shellcode may be used to inject the Assembly into arbitrary Windows processes. Given an arbitrary .NET Assembly, parameters, and an entry point (such as `Program.Main`), it produces position-independent shellcode that loads the Assembly from memory. 
 
-Today, we are releasing a version that adds the capability to generate shellcode from other types of payloads. It also includes (long awaited) Python bindings, a new option, and many small miscellaneous improvements.
+Today, we are releasing a version that adds the capability to generate shellcode from other types of payloads. It also includes (long awaited) Python bindings, a new safety option, and many small miscellaneous improvements.
 
 # Module Types
 
@@ -17,7 +17,7 @@ If you have wondered why we have not yet release v1.0, it is because we went dow
 
 ![_config.yml]({{ site.baseurl }}/images/Bear_Claw/rabbit.gif)
 
-We realized that, fundamentally, Donut is not just a tool for generating shellcode from .NET Assemblies but can also be used as a framework for generating shellcode from arbitrary payload types. It is composed of the following elements:
+We realized that, fundamentally, Donut is not just a tool for generating shellcode from .NET Assemblies but it can also be used as a framework for generating shellcode from arbitrary payload types. It is composed of the following elements:
 
 * N # of loaders for specific payload types.
 * `Payload.c`, which dynamically determines the payload type, loads it with the appropriate loader logic, and performs other functionalities such as decrypting the payload, running bypasses, and cleaning up memory.
@@ -30,17 +30,27 @@ To demonstrate the capabilities of this framework, we added several new Module t
 
 *TODO: Add an image and example of this!*
 
+In ancient eras (before PowerShell) there was Visual Basic. Designed as an object-oriented scripting language for Windows operating systems, it became a universal tool for administrators seeking to avoid the hell that is Batch scripting. People liked Visual Basic. They liked it waaaaay toooooo muuuuuch. So Microsoft integrated it into everything. *everything*. And they made variants of it. *so many variants*. One of those variants was VBScript, built on top of the brand new .NET Framework and designed to be interoperable with the pre-existing COM APIs. As with anything useful for admins, it was quickly adopted by malware authors. Recently, it has regained popularity in offensive tooling due to the amount of ways it can be loaded from memory or through application whitelisting bypasses.
+
+Its better-bred cousin is JScript, the bastard child of JavaScript and .NET. Like VBScript, it also has free reign of the .NET APIs & COM and can be loaded from memory. Microsoft created it to act as either a web scripting language (for Internet Explorer) or client-side scripting language for system administrators. Shockingly, malware authors decided to abuse it for browser breakouts and RATs. 
+
+Both VBScript and JScript have access to the Windows Scripting Host, a system that allows them access to operating system features like running shell commands. Between their access to managed and unmanaged APIs, COM, and tons of other dangerous tools, they have each provided powerful platforms for obtaining initial access and running post-exploitation scripts. This has made them weapons of choice in many payload types like SCT, XML, and HTA through a [variety](regsvr32) of [execution](MSBuild) [vectors](MSHTA).
+
+With the growing prevalance of .NET-based scripting languages, Microsoft decided to create a generic interoperability framework called [ActiveScript](TODO: provide link) that allowed object instantiation between languages and APIs. This framework is exposed through a COM object, `IActiveScript`. We wrote a wrapper for it that allows you to load any ActiveScript-compatible scripting language from memory.
+
+All this to say: you can now take your existing JScript/VBScript payloads and execute them through shellcode. We go ahead and disable AMSI for you, and ensure that Device Guard won't prevent dynamic code execution. You could even load a .NET Assembly by combining DotNetToJScript & Donut!!! (*Test this*)
+
 If you would like to learn more about how this works, you can read [the related blog post](https://modexp.wordpress.com/2019/07/21/inmem-exec-script/ "Shellcode: In-Memory Execution of JavaScript, VBScript, JScript and XSL") by Odzhan.
 
 ## XSL (Microsoft.XMLDom)
 
 XSL files are XML files that can contain executable scripts. Theoretically, they are supposed to be used to transform the representation of data in XML. Microsoft built many tools and utilities for executing XSLT (XSL Transforms) into the Windows OS. Practically, however, they are mostly used as payloads by [malware authors](https://attack.mitre.org/techniques/T1220/). Perhaps the most well-known example is the now-patched [Squiblytwo](http://subt0x11.blogspot.com/2018/04/wmicexe-whitelisting-bypass-hacking.html) Application Whitelisting Bypass that could execute remotely-hosted code from memory. 
 
-The `Microsoft.XMLDOM` COM object allows for XSL transformation. It can either execute XSL [from disk or from memory](https://twitter.com/TheRealWover/status/1137382984418516992), containing JScript, VBScript, or C#. For v0.9.2 of Donut, we have created a module type that utilizes this COM object to load and execute XSL files from memory. Anything script that can normally execute through that COM object should be viable as a payload for Donut. _Please note, there are slight differences in how `Microsoft.XMLDOM` and WMIC.exe transform XSL that I have not fully explored._ If you would like to learn more about how this works, you can read [the related blog post](https://modexp.wordpress.com/2019/07/21/inmem-exec-script/ "Shellcode: In-Memory Execution of JavaScript, VBScript, JScript and XSL") by Odzhan.
+The `Microsoft.XMLDOM` COM object allows for XSL transformation. It can either execute XSL [from disk or from memory](https://twitter.com/TheRealWover/status/1137382984418516992), containing JScript, VBScript, or C#. For v0.9.2 of Donut, we have created a module type that utilizes this COM object to load and execute XSL files from memory. Any script that can normally execute through that COM object should be viable as a payload for Donut. _Please note, there are slight differences in how `Microsoft.XMLDOM` and WMIC.exe transform XSL that I have not fully explored._ If you would like to learn more about how this works, you can read [the related blog post](https://modexp.wordpress.com/2019/07/21/inmem-exec-script/ "Shellcode: In-Memory Execution of JavaScript, VBScript, JScript and XSL") by Odzhan.
 
 *TODO: Add an image and example of this!*
 
-I feel that I must bring up the question: Is this useful? Honestly, I'm not sure that it is. But it was easy and we got it working as a script execution vector before the `IActiveScript` loader, so why throw out the functionality? If for some strange reason you DO want to execute XSL files through shellcode, then that is now a thing that you can do. You strange, strange person.
+I feel that I must bring up the question: Is this useful? Honestly, I'm not sure that it is. But it was relatively easy to get working, nobody else has done it before, and we finished it before the `IActiveScript` loader (which is probably more useful), so why throw out the functionality? If for some strange reason you DO want to execute XSL files through shellcode, then that is now a thing that you can do. You strange, strange person.
 
 ![_config.yml]({{ site.baseurl }}/images/Bear_Claw/strange.gif)
 
@@ -64,19 +74,54 @@ I must state a very important caveat for this PE Loader: *We run whatever code y
 
 There are inherant dangers to injecting PE files into processes. DLLs are usually not very dangerous, but EXEs are risky. If your EXE tries to use any Windows subsystem or exit the process, *it will do exactly that.* None of the safety mechanisms in .NET exist when executing unmanaged code. So, if you inject an EXE into a GUI process (one with existing windows) that was designed to be used as a console application and it therefore attempts to use the subsystems for console output, it may crash the process. The reverse is also true. Simply put, Your Mileage May Vary with injecting PE files. We cannot provide you with any protections or extra reliability when we execute your code. Generating the shellcode is up to us. Injecting it safely is up to you. :-) 
 
-If you would like to learn more about how this works, you can read [this blog post](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL") by Odzhan.
-
 # Donut API
 
-Finalized the API. Should make it easier to add 
+We did not want to add additional wrappers or generators (Python, C#, etc.) for Donut until our API had been stabilized. At this point, we consider it stable enough to move forward with those plans. Many small fixes, improvements, and changes were made to the inner workings of Donut for v0.9.2. Too many to detail. Overall, the API and its internals have been cleaned up and should be more future-proof than before.
 
-## Command Changes
+## Command Addition - Bypass Failure Handling
 
-* Option to not execute if the bypasses fail for any reason. OpSec for if they block you from disabling AMSI.
+Other than adding new types of payloads, we added one small feature to Donut. A `-b` option that will prevent the payload from being loaded if the bypasses fail to execute for any reason. We do not know of any AV or EDR that currently prevents our bypasses. But if they fail for any reason then you can reduce the likelihood of your payload being detected by ensuring that it is not passed to AMSI. 
 
 # Python Bindings
 
-Demonstrating this API is a new Python binding for Donut written by Marcello Salvati ([byt3bl33der](https://twitter.com/byt3bl33d3r)).
+Demonstrating our API is a new Python 3 binding for Donut written by Marcello Salvati ([byt3bl33d3r](https://twitter.com/byt3bl33d3r)). It exposes Donut's `DonutCreate` API call to Python code, allowing for dynamic generation of Donut shellcode with all of the normal features. He also added support for PyPi, meaning that you can install Donut locally or from the PyPi repositories using pip3.
+
+*TODO: Install examples*
+
+![_config.yml]({{ site.baseurl }}/images/Bear_Claw/import_donut.PNG)
+
+## Examples
+
+Creating shellcode from JScript/VBScript.
+```python
+shellcode = donut.create(file=r"C:\\Tools\\Source\\Repos\\donut\\calc.js")
+f = open("shellcode.bin", "wb")
+f.write(shellcode)
+f.close()
+```
+
+Creating shellcode from an XSL file that pops up a calculator.
+```python
+shellcode = donut.create(file=r"C:\\Tools\\Source\\Repos\\donut\\calc.xsl")
+```
+
+Creating shellcode from an unmanaged DLL. Invokes DLLMain.
+```python
+shellcode = donut.create(file=r"C:\Tools\Source\Repos\donut\payload\test\hello.dll")
+```
+
+Creating shellcode from an unmanaged DLL, using the exported function `DonutAPI`, and passing in 4 parameters.
+```python
+shellcode = donut.create(file=r"C:\Tools\Source\Repos\donut\payload\test\hello.dll", params = "hello1,hello2,hello3,hello4", method="DonutAPI")
+```
+
+And, of course, creating shellcode from a .NET Assembly, specifying many options.
+
+```python
+shellcode = donut.create(file=r"C:\Tools\Source\Repos\donut\DemoCreateProcess\bin\Release\ClassLibrary.dll", params="notepad.exe,calc.exe", cls="TestClass", method="RunProcess", arch=1, appdomain="TotallyLegit")
+```
+
+*TODO: Link to Marcello's documentation*
 
 # Cursing Microsoft
 
