@@ -125,7 +125,7 @@ And, of course, creating shellcode from a .NET Assembly, specifying many options
 shellcode = donut.create(file=r"C:\Tools\Source\Repos\donut\DemoCreateProcess\bin\Release\ClassLibrary.dll", params="notepad.exe,calc.exe", cls="TestClass", method="RunProcess", arch=1, appdomain="TotallyLegit")
 ```
 
-*TODO: Link to Marcello's documentation*
+The full documentation for these Python bindings can be found in our `docs` [folder](https://github.com/TheWover/donut/blob/master/docs/2019-08-21-Python_Extension.md).
 
 # Cursing Microsoft
 
