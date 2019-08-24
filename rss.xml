@@ -6,6 +6,14 @@
   <link>https://thewover.github.io/</link>
   <description>Red Teaming, .NET, and random computing topics</description>
   
+  
+  
+  <item>
+    <title>Donut v0.9.2 "Bear Claw" - JScript/VBScript/XSL/PE Shellcode and Python Bindings</title>
+    <link>https://thewover.github.io/Bear-Claw/</link>
+    <description>TLDR: Version v0.9.2 "Bear Claw" of Donut has been released, including shellcode generation from many new types of payloads (JScript/VBScript/XSL and unmanaged DLL/PEs), and Python bindings for dynamic shellcode generation.</description>
+  </item>
+  
   <item>
     <title>Donut v0.9.1 "Apple Fritter" - Dual-Mode Shellcode, AMSI, and More</title>
     <link>https://thewover.github.io/Apple-Fritter/</link>
