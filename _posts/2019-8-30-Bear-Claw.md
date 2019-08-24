@@ -21,7 +21,7 @@ We realized that, fundamentally, Donut is not just a tool for generating shellco
 
 * N # of loaders for specific payload types.
 * `Payload.c`, which dynamically determines the payload type, loads it with the appropriate loader logic, and performs other functionalities such as decrypting the payload, running bypasses, and cleaning up memory.
-* `Exe2h.c`, which converts payload.exe into Position Indpendant Code.
+* `Exe2h.c`, which extracts code from the `.text` section of `payload.exe` and saves it to a C array to be used in building the final PIC.
 * `Donut.c`, the generator that transforms your payload into a Donut Module (your payload, and everything about it), creates a Donut Instance (an encrypted data structure that is the unit of execution for the Donut loader), and the PIC of `Payload.exe` with a Donut Config (tells the loader where to find the Instance) in order to produce the final shellcode.
 
 To demonstrate the capabilities of this framework, we added several new Module types. All of them are types of payloads that enable similar tradecraft to generating shellcode from .NET Assemblies. At this time, we do not plan on adding additional module types to Donut. Those included in this release are sufficient to demonstrate the potential of the framework. With the examples and documentation that we have provided, you should have everything that you need to integrate a new loader and generate shellcode from your favorite type of payload. However, I leave open the possibility that we may go down additional rabbit holes in the future. :-) 
