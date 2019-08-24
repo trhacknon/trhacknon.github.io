@@ -7,7 +7,7 @@ title: Donut v0.9.2 "Bear Claw" - JScript/VBScript/XSL/PE Shellcode, Python Bind
 
 # Introduction
 
-In case you are unaware, [Donut](https://github.com/TheWover/donut "Donut") is a shellcode generation tool created to generate native shellcode payloads from .NET Assemblies. This shellcode may be used to inject the Assembly into arbitrary Windows processes. Given an arbitrary .NET Assembly, parameters, and an entry point (such as `Program.Main`), it produces position-independent shellcode that loads the Assembly from memory. 
+[Donut](https://github.com/TheWover/donut "Donut") is a shellcode generation tool created to generate native shellcode payloads from .NET Assemblies. This shellcode may be used to inject the Assembly into arbitrary Windows processes. Given an arbitrary .NET Assembly, parameters, and an entry point (such as `Program.Main`), it produces position-independent shellcode that loads the Assembly from memory. 
 
 Today, we are releasing a version that adds the capability to generate shellcode from other types of payloads. It also includes (long awaited) Python bindings, a new safety option, and many small miscellaneous improvements.
 
@@ -30,13 +30,13 @@ To demonstrate the capabilities of this framework, we added several new Module t
 
 *TODO: Add an image and example of this!*
 
-In ancient eras (before PowerShell) there was Visual Basic. Designed as an object-oriented scripting language for Windows operating systems, it became a universal tool for administrators seeking to avoid the hell that is Batch scripting. People liked Visual Basic. They liked it waaaaay toooooo muuuuuch. So Microsoft integrated it into everything. *everything*. And they made variants of it. *so many variants*. One of those variants was VBScript, built on top of the brand new .NET Framework and designed to be interoperable with the pre-existing COM APIs. As with anything useful for admins, it was quickly adopted by malware authors. Recently, it has regained popularity in offensive tooling due to the amount of ways it can be loaded from memory or through application whitelisting bypasses.
+In ancient eras (before PowerShell) there was Visual Basic. Designed as an object-oriented scripting language for Windows operating systems, it became a universal tool for administrators seeking to avoid the hell that is Batch scripting. People liked Visual Basic. They liked it waaaaay toooooo muuuuuch. So Microsoft integrated it into everything. *everything*. And they made variants of it. *so many variants*. One of those variants was VBScript, which used COM to access and manage many components of the operating system. As with anything useful for admins, it was quickly adopted by malware authors. Recently, it has regained popularity in offensive tooling due to the amount of ways it can be loaded from memory or through application whitelisting bypasses.
 
-Its better-bred cousin is JScript, the bastard child of JavaScript and .NET. Like VBScript, it also has free reign of the .NET APIs & COM and can be loaded from memory. Microsoft created it to act as either a web scripting language (for Internet Explorer) or client-side scripting language for system administrators. Shockingly, malware authors decided to abuse it for browser breakouts and RATs. 
+Its better-bred cousin is JScript, the bastard child of JavaScript, COM, and .NET. Like VBScript, it also has free reign of the COM APIs, is sort of interoperable with .NET, and can be loaded from memory. Microsoft created it to act as either a web scripting language (for Internet Explorer) or client-side scripting language for system administrators. Shockingly, malware authors decided to abuse it for browser breakouts and RATs.
 
-Both VBScript and JScript have access to the Windows Scripting Host, a system that allows them access to operating system features like running shell commands. Between their access to managed and unmanaged APIs, COM, and tons of other dangerous tools, they have each provided powerful platforms for obtaining initial access and running post-exploitation scripts. This has made them weapons of choice in many payload types like SCT, XML, and HTA through a [variety](regsvr32) of [execution](MSBuild) [vectors](MSHTA).
+Both languages have access to the Windows Scripting Host, a system that allows them access to operating system features like running shell commands. Between their access to managed and unmanaged APIs, COM, and tons of other useful/dangerous tools, they have each provided powerful platforms for obtaining initial access and running post-exploitation scripts. This has made them weapons of choice in many payload types like SCT, XML, and HTA through a [variety](https://attack.mitre.org/techniques/T1117/ "regsvr32") of [execution](https://attack.mitre.org/techniques/T1127/ "MSBuild") [vectors](https://attack.mitre.org/techniques/T1170/ "MSHTA").
 
-With the growing prevalance of .NET-based scripting languages, Microsoft decided to create a generic interoperability framework called [ActiveScript](TODO: provide link) that allowed object instantiation between languages and APIs. This framework is exposed through a COM object, `IActiveScript`. We wrote a wrapper for it that allows you to load any ActiveScript-compatible scripting language from memory.
+Both JScript and VBScript are based on a generic scripting framework called [ActiveScript](https://en.wikipedia.org/wiki/Active_Scripting) built on a combination of COM and OLE Automation. Developers could also create additional scripting languages through COM modules, leading to Active implementations of third-party languages like Perl and Python. The Active Script engine is exposed through the COM interface `IActiveScript`, which allows the user to execute arbitrary scripting code through any installed Active Script language module. We wrote a wrapper for it that allows you to load any ActiveScript-compatible scripting language from memory.
 
 All this to say: you can now take your existing JScript/VBScript payloads and execute them through shellcode. We go ahead and disable AMSI for you, and ensure that Device Guard won't prevent dynamic code execution. You could even load a .NET Assembly by combining DotNetToJScript & Donut!!! (*Test this*)
 
@@ -80,7 +80,11 @@ We did not want to add additional wrappers or generators (Python, C#, etc.) for 
 
 ## Command Addition - Bypass Failure Handling
 
-Other than adding new types of payloads, we added one small feature to Donut. A `-b` option that will prevent the payload from being loaded if the bypasses fail to execute for any reason. We do not know of any AV or EDR that currently prevents our bypasses. But if they fail for any reason then you can reduce the likelihood of your payload being detected by ensuring that it is not passed to AMSI. 
+Other than adding new types of payloads, we added one small feature to Donut. A `-b` option that can prevent the payload from being loaded if the bypasses fail to execute for any reason. We do not know of any AV or EDR that currently prevents our bypasses. But if they fail for any reason then you can reduce the likelihood of detection by ensuring that your payload is not passed to AMSI. The full set of options are below.
+
+```
+ -b <level>           Bypass AMSI/WLDP : 1=skip, 2=abort on fail, 3=continue on fail.(default)
+```
 
 # Python Bindings
 
