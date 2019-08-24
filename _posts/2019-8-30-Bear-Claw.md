@@ -3,7 +3,7 @@ layout: post
 title: Donut v0.9.2 "Bear Claw" - JScript/VBScript/XSL/PE Shellcode, Python Bindings, and Cursing Microsoft
 ---
 
-*TLDR: Version v0.9.2 "Bear Claw" of Donut has been released, including shellcode generated from many new types of payloads (JScript/VBScript/XSL and unmanaged DLL/PEs), and Python bindings that allow dynamic shellcode generation. Also, frustrated ranting about the MSVC compiler.*
+*TLDR: Version v0.9.2 "Bear Claw" of Donut has been released, including shellcode generation from many new types of payloads (JScript/VBScript/XSL and unmanaged DLL/PEs), and Python bindings for dynamic shellcode generation.*
 
 # Introduction
 
@@ -127,16 +127,14 @@ shellcode = donut.create(file=r"C:\Tools\Source\Repos\donut\DemoCreateProcess\bi
 
 The full documentation for these Python bindings can be found in our `docs` [folder](https://github.com/TheWover/donut/blob/master/docs/2019-08-21-Python_Extension.md).
 
-# Cursing Microsoft
+# MSVC Compatability
 
-Overly helpful optimization. Had to figure out how trick it to use our stub functions.
-
-Also, no more compatability with older versions because they broke stuff.
+Due to recent changes in the MSVC compiler, we will only support 2019 and later versions of MSVC in future versions of Donut. Mingw support will remain the same. 
 
 # Conclusion
 
-What's next?
+What's next? In the short-term, we are taking a break from Donut until Octoberish. Both Odzhan and I are working on seperate process injection libraries. His will be an awesome library of techniques. Mine will be a small set of implementations for SharpSploit that are designed to be as reliable, safe, and flexible as possible. Afterwards, we will resume work towards v1.0 of Donut. 
 
-Taking a bit of a break until September / October. Both Odzhan and I are working on seperate process injection libraries. His will be an awesome library of techniques. Mine will be a small set of implementations for SharpSploit that are designed to be as reliable, safe, and flexible as possible.
+# P.S.
 
 I feel that I must note somewhere in this blog post: all of the hard work for this release of Donut was done by other people. :-) I have not had spare time to work on side projects recently, so have only contributed ideas, planning, and documentation to this version. If you are going to thank somebody for the hard work that went into this release, thank Odzhan or byt3bl33d3r. ;-) 
