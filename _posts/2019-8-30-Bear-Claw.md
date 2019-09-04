@@ -94,11 +94,17 @@ Other than adding new types of payloads, we added one small feature to Donut. A 
 
 Demonstrating our API is a new Python 3 binding for Donut written by Marcello Salvati ([byt3bl33d3r](https://twitter.com/byt3bl33d3r)). It exposes Donut's `DonutCreate` API call to Python code, allowing for dynamic generation of Donut shellcode with all of the normal features. He also added support for PyPi, meaning that you can install Donut locally or from the PyPi repositories using pip3.
 
-*TODO: Install examples*
+Installing the Donut module from the current directory:
 
-![_config.yml]({{ site.baseurl }}/images/Bear_Claw/import_donut.PNG)
+![_config.yml]({{ site.baseurl }}/images/Bear_Claw/pip_install_donut_local.PNG)
+
+Installing the Donut module from the PyPi repostiory:
+
+**Todo!**
 
 ## Examples
+
+![_config.yml]({{ site.baseurl }}/images/Bear_Claw/import_donut.PNG)
 
 Creating shellcode from JScript/VBScript.
 ```python
