@@ -74,6 +74,10 @@ I must state a very important caveat for this PE Loader: *We run whatever code y
 
 There are inherant dangers to injecting PE files into processes. DLLs are usually not very dangerous, but EXEs are risky. If your EXE tries to use any Windows subsystem or exit the process, *it will do exactly that.* None of the safety mechanisms in .NET exist when executing unmanaged code. So, if you inject an EXE into a GUI process (one with existing windows) that was designed to be used as a console application and it therefore attempts to use the subsystems for console output, it may crash the process. The reverse is also true. Simply put, Your Mileage May Vary with injecting PE files. We cannot provide you with any protections or extra reliability when we execute your code. Generating the shellcode is up to us. Injecting it safely is up to you. :-) 
 
+# Memory Permissions
+
+An undocumented "feature" of previous Donut versions was that its shellcode only ran from `RWX` memory. If you attempted to execute it from `RX` memory then it would crash... as multiple people messaged me about. :-D We fixed that for Donut v0.9.2. You may now pretend that you are not as evil as you are.
+
 # Donut API
 
 We did not want to add additional wrappers or generators (Python, C#, etc.) for Donut until our API had been stabilized. At this point, we consider it stable enough to move forward with those plans. Many small fixes, improvements, and changes were made to the inner workings of Donut for v0.9.2. Too many to detail. Overall, the API and its internals have been cleaned up and should be more future-proof than before.
