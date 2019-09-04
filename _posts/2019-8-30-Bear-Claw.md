@@ -3,7 +3,7 @@ layout: post
 title: Donut v0.9.2 "Bear Claw" - JScript/VBScript/XSL/PE Shellcode and Python Bindings
 ---
 
-*TLDR: Version v0.9.2 "Bear Claw" of Donut has been released, including shellcode generation from many new types of payloads (JScript/VBScript/XSL and unmanaged DLL/PEs), and Python bindings for dynamic shellcode generation.*
+*TLDR: Version v0.9.2 "Bear Claw" of Donut has been released, including shellcode generation from many new types of payloads (JScript/VBScript/XSL and unmanaged DLL/PEs), executing from RX memory, and Python bindings for dynamic shellcode generation.*
 
 # Introduction
 
