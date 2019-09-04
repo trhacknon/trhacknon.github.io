@@ -28,8 +28,6 @@ To demonstrate the capabilities of this framework, we added several new Module t
 
 ## VBScript/JScript (IActiveScript)
 
-*TODO: Add an image and example of this!*
-
 In ancient eras (before PowerShell) there was Visual Basic. Designed as an object-oriented scripting language for Windows operating systems, it became a universal tool for administrators seeking to avoid the hell that is Batch scripting. People liked Visual Basic. They liked it waaaaay toooooo muuuuuch. So Microsoft integrated it into everything. *everything*. And they made variants of it. *so many variants*. One of those variants was VBScript, which used COM to access and manage many components of the operating system. As with anything useful for admins, it was quickly adopted by malware authors. Recently, it has regained popularity in offensive tooling due to the amount of ways it can be loaded from memory or through application whitelisting bypasses.
 
 Its better-bred cousin is JScript, the bastard child of JavaScript, COM, and .NET. Like VBScript, it also has free reign of the COM APIs, is sort of interoperable with .NET, and can be loaded from memory. Microsoft created it to act as either a web scripting language (for Internet Explorer) or client-side scripting language for system administrators. Shockingly, malware authors decided to abuse it for browser breakouts and RATs.
@@ -48,8 +46,6 @@ XSL files are XML files that can contain executable scripts. Theoretically, they
 
 The `Microsoft.XMLDOM` COM object allows for XSL transformation. It can either execute XSL [from disk or from memory](https://twitter.com/TheRealWover/status/1137382984418516992), containing JScript, VBScript, or C#. For v0.9.2 of Donut, we have created a module type that utilizes this COM object to load and execute XSL files from memory. Any script that can normally execute through that COM object should be viable as a payload for Donut. _Please note, there are slight differences in how `Microsoft.XMLDOM` and WMIC.exe transform XSL that I have not fully explored._ If you would like to learn more about how this works, you can read [the related blog post](https://modexp.wordpress.com/2019/07/21/inmem-exec-script/ "Shellcode: In-Memory Execution of JavaScript, VBScript, JScript and XSL") by Odzhan.
 
-*TODO: Add an image and example of this!*
-
 I feel that I must bring up the question: Is this useful? Honestly, I'm not sure that it is. But it was relatively easy to get working, nobody else has done it before, and we finished it before the `IActiveScript` loader (which is probably more useful), so why throw out the functionality? If for some strange reason you DO want to execute XSL files through shellcode, then that is now a thing that you can do. You strange, strange person.
 
 ![_config.yml]({{ site.baseurl }}/images/Bear_Claw/strange.gif)
@@ -61,8 +57,6 @@ If you are a more normal person, you may want to execute unmanaged DLLs and EXEs
 Using the standard format of Windows executables, unmanaged [PE files](https://blog.kowalczyk.info/articles/pefileformat.html) are a simple unit of execution for exploits and post-exploitation payloads. However, their severe disadvantage is that they are designed to be run from disk by the Windows loader. Modern offensive tradecraft hopes to presume that all payloads are run from memory, rather than from disk. As such, there is a long history of tool creators crafting various means by which to load PEs from memory. Some people convert them to shellcode, others write PE loaders, we have done both at the same time. We wrote a PE loader, that is itself converted to shellcode. Your PE is wrapped in an encrypted Donut Module and can be loaded from memory like any other Module type. 
 
 By default, the PE loader will execute whatever the Entry Point of your executable is (as specified by the PE headers). For EXEs, that is the main entry point. For DLLs, that would be `DLLMain` with `DLL_PROCESS_ATTACH`. For DLLs, you may optionally specify an exported function and pass in parameters as strings.
-
-*TODO: Add an image and example of this!*
 
 If you would like to learn more about how this works, you can read [this blog post](https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/ "Shellcode: In-Memory Execution of DLL") by Odzhan.
 
