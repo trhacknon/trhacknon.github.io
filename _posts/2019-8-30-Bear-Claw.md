@@ -104,7 +104,7 @@ Installing the Donut module from the current directory:
 
 Installing the Donut module from the PyPi repostiory:
 
-![_config.yml]({{ site.baseurl }}/images/Bear_Claw/pip_install_donut_remote.PNG)
+![_config.yml]({{ site.baseurl }}/images/Bear_Claw/pip_install_donut_repo.PNG)
 
 ## Examples
 
