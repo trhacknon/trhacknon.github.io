@@ -80,6 +80,8 @@ There are inherant dangers to injecting PE files into processes. DLLs are usuall
 
 An undocumented "feature" of previous Donut versions was that its shellcode only ran from `RWX` memory. If you attempted to execute it from `RX` memory then it would crash... as multiple people messaged me about. :-D We fixed that for Donut v0.9.2. You may now pretend that you are not as evil as you are.
 
+The first bit of Donut shellcode allocates `RW` memory in the current process. It performs all decryption and other tasking that needs to execute from `W` memory from there, then continues to execute appropriately. As such, the actual payload needs only to be run from `RX` memory.
+
 # Donut API
 
 We did not want to add additional wrappers or generators (Python, C#, etc.) for Donut until our API had been stabilized. At this point, we consider it stable enough to move forward with those plans. Many small fixes, improvements, and changes were made to the inner workings of Donut for v0.9.2. Too many to detail. Overall, the API and its internals have been cleaned up and should be more future-proof than before.
