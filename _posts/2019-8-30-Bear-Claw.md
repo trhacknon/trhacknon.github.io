@@ -104,7 +104,7 @@ Installing the Donut module from the current directory:
 
 Installing the Donut module from the PyPi repostiory:
 
-**Todo!**
+**Uhhhhhhh... you caught me. Repo isn't up yet. Should be up in a week.**
 
 ## Examples
 
