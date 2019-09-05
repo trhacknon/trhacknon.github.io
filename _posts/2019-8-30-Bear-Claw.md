@@ -58,7 +58,7 @@ Using the standard format of Windows executables, unmanaged [PE files](https://b
 
 By default, the PE loader will execute whatever the Entry Point of your executable is (as specified by the [PE headers](https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-image_optional_header32)). For EXEs, that is the main entry point. For DLLs, that would be `DLLMain` with `DLL_PROCESS_ATTACH`. For DLLs, you may optionally specify an exported function and pass in parameters as strings.
 
-Generating shellcode for PE files works similar to Assemblies. If you wish to specify and exported function and parameters you may do so.
+Generating shellcode for PE files works similar to Assemblies. If you wish to specify any exported function and parameters you may do so.
 
 `.\donut.exe -f .\payload\test\hello.dll -p hello1,hello2,hello3,hello4, -m DonutAPI`
 
