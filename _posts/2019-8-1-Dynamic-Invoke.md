@@ -3,7 +3,7 @@ layout: post
 title: Enabling Covert Operations - 0: Dynamic Invocation
 ---
 
-*TLDR: The first (and late) post in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. Nothing in this series will be operation-ready. I will provide you knowledge and ingredients, but you must do the work to build operational tooling upon it. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as three modular C# implementations of covert remote injection techniques.*
+*TLDR: The first (and late) post in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. Nothing in this series will be operation-ready. I will provide you knowledge and ingredients, but you must do the work to build operational tooling upon it. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
 
 # Dynamic Invocation - D/Invoke
 
