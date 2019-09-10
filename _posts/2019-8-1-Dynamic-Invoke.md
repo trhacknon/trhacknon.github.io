@@ -7,8 +7,7 @@ title: Enabling Covert Operations - 0: Dynamic Invocation
 
 # Dynamic Invocation - D/Invoke
 
-On August 5th, a Pull Request of mine was merged into SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call unmanaged code from memory (while passing parameters on the stack) without resorting to dynamically building and running shellcode.
-
+On August 5th, [cobbr](https://twitter.com/cobbr_io) merged a Pull Request of mine into SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call unmanaged code from memory (while passing parameters on the stack) without resorting to dynamically building and running shellcode.
 
 ## Not Actually New
 
