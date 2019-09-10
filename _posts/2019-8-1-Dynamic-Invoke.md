@@ -3,15 +3,17 @@ layout: post
 title: Enabling Covert Operations - 0: Dynamic Invocation
 ---
 
-*TLDR: The first in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as three modular C# implementations of convert remote injection techniques.*
+*TLDR: The first (and late) post in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. Nothing in this series will be operation-ready. I will provide you knowledge and ingredients, but you must do the work to build operational tooling upon it. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as three modular C# implementations of covert remote injection techniques.*
 
 # Dynamic Invocation - D/Invoke
 
 ## Not Actually New
 
-* P/Invoke Innocuous API calls to force a library to load. Then use GetModuleHandle & GetProcAddress.
+I would be very surprised if I am the first offensive tool developer to use this technique. However, since it is new to SharpSploit and I have not seen anyone discuss it before, I decided it was worth a post.
 
 ### A Legitimate Technique
+
+Nothing about this technique is inherently malicious. If you are experienced in writing Windows applications, then you may be surprised that I even discuss this as an offensive "technique". It is the standard way of using DLLs in Windows. The only reason this is useful offensively is because it happens to circumvent a few common detection techniques. And the way that it was implement in SharpSploit also makes it easier to use unmanaged code from memory. Which, again, is not necessarily malicious but is useful for malware writers.
 
 ### Delegates
 
@@ -26,6 +28,22 @@ title: Enabling Covert Operations - 0: Dynamic Invocation
 ### Manual Mapping
 
 ## How?
+
+.NET APIs involved. Explain the functions and implementation in SharpSploit.
+
+## Example - NtInjector
+
+Let's walk through an example. We will build a shellcode injector that only uses API calls from `ntdll.dll`, but does not use any PInvokes from that DLL. It does not implement any new injection technique. The complete project is not available for download, but you may build a tool from it yourself as an exercise.
+
+## Room for Improvement
+
+* P/Invoke Innocuous API calls to force a library to load. Then use GetModuleHandle & GetProcAddress.
+* Using a PE reader to get the symbol addresses
+* Walking the PEB / API hashing
+
+## Conclusion
+
+Next up, a modular shellcode injection library for SharpSploit.
 
 ---
 layout: post
@@ -45,6 +63,10 @@ title: Enabling Covert Operations - 1: Modular Shellcode Injection
 ### RWX || RX?
 
 ### Still Room For Improvement
+
+### Win32/NT API Call Table
+
+The table below explains every Windows API call that is used in this code. Name, description, usage, works on remote processes, CFG-evasion, CIG-evasion. 
 
 ## Design Philosophy
 
