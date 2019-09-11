@@ -11,7 +11,7 @@ On August 5th, [cobbr](https://twitter.com/cobbr_io) merged a [Pull Request](htt
 
 ## Not Actually New
 
-I am not the first offensive tool developer to use this technique. However, since it is new to SharpSploit and I have not seen anyone discuss it before, I decided it was worth a post.
+I am not the first offensive tool developer to use this technique. However, since it is new to SharpSploit and I have not seen anyone discuss it before in the context of C#, I decided it was worth a post.
 
 ### A Legitimate Technique
 
@@ -19,9 +19,61 @@ Nothing about this technique is inherently malicious. If you are experienced in 
 
 ### Delegates
 
+So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we PInvoke only two API calls: `LoadLibrary` and `GetProcAddress`. The former loads a DLL from disk into your current process. The latter gets a pointer to a function in a DLL that has been loaded into the current process. We may call that function from the pointer while passing in our parameters on the stack.
+
+Again, you may be thinking that this process is nothing new. You are correct. However, what is new is a SharpSploit API that automates this process for making arbitrary API calls with the goal of directly replacing PInvoke. By leveraging this dynamic loading API rather than the static loading API that sits behind PInvoke, you avoid directly importing suspicious API calls into your .NET Assembly. Additionally, this API lets you easily invoke unmanaged code from memory in C# (passing in parameters and receiving output) without doing some hacky workaround like self-injecting shellcode.
+
+We accomplish this through the magic of [Delegates](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/). .NET includes the Delegate API as a way of wrapping a method/function in a class. If you have ever used the Reflection API to enumerate methods in a class, the objects you were inspecting were actually a form of delegate.
+
+The Delegate API has a number of fantastic features, such as the ability to instantiate Delegates from function pointers and to dynamically invoke the function wrapped by the delegate while passing in parameters. 
+
+Let's take a look at some of the code in this API:
+
+```csharp
+
+/// <summary>
+        /// Dynamically invokes an arbitrary function from a pointer. Useful for manually mapped modules or loading/invoking unmanaged code from memory.
+        /// </summary>
+        /// <author>The Wover (@TheRealWover)</author>
+        /// <param name="FunctionPointer">A pointer to the unmanaged function.</param>
+        /// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
+        /// <param name="Parameters">Arbitrary set of parameters to pass to the function. Can be modified if function uses call by reference.</param>
+        /// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
+        public static object DynamicFunctionInvoke(IntPtr FunctionPointer, Type FunctionDelegateType, ref object[] Parameters)
+        {
+            Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(FunctionPointer, FunctionDelegateType);
+
+            Object result = funcDelegate.DynamicInvoke(Parameters);
+
+            return result;
+        }
+
+```
+
+This method has been reduced to effectively two lines of code. The first creates a Delegate from a function pointer that is discovered through a combination of `LoadLibrary` and `GetProcesAdress`. The second invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that they data passed in is structured in the way that the unmanaged code will expect.
+
+The confusing part of this is probably the `Type FunctionDelegateType` parameter. This is where you pass in the function prototype of the unmanaged code that you want to call. If you remember from PInvoke, you set up the function with something like:
+
+```csharp
+[DllImport("kernel32.dll")]
+            public static extern IntPtr OpenProcess(
+                ProcessAccessFlags dwDesiredAccess,
+                bool bInheritHandle,
+                UInt32 dwProcessId
+            );
+```
+
+You must also pass in a function prototype for DInvoke. This lets the Delegate know how to setup the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code in C# (by self-injecting shellcode), this is MUCH easier!
+
+So how do you actually use this API?
+
 ## Why?
 
+This presents several opportunities for offensive tool developers.
+
 ### Avoid Suspicious Imports
+
+As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could dynamically load the DLL, get the 
 
 ### Unknown Execution Flow at Compile Time
 
