@@ -65,7 +65,78 @@ The confusing part of this is probably the `Type FunctionDelegateType` parameter
 
 You must also pass in a function prototype for DInvoke. This lets the Delegate know how to setup the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code in C# (by self-injecting shellcode), this is MUCH easier!
 
-So how do you actually use this API?
+The code below demonstrates how this is used for the `NtCreateThreadEx` function in `ntdll.dll`. The delegate (that sets up the function prototype) is stored in the `SharpSploit.Execution.DynamicInvoke.Native.DELEGATES` struct. The wrapper method is `SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx` that takes all of the same parameters that you would expect to use in a normal PInvoke.
+
+```csharp
+
+namespace SharpSploit.Execution.DynamicInvoke
+{
+    /// <summary>
+    /// Contains function prototypes and wrapper functions for dynamically invoking NT API Calls.
+    /// </summary>
+    public class Native
+    {        
+        /// <summary>
+        /// Holds delegates for API calls in the NT Layer.
+        /// Must be public so that they may be used with SharpSploit.Execution.DynamicInvoke.Generic.DynamicFunctionInvoke
+        /// </summary>
+        public struct DELEGATES
+        {
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate IntPtr NtCreateThreadEx(out IntPtr threadHandle, Execution.Win32.WinNT.ACCESS_MASK desiredAccess,
+                IntPtr objectAttributes, IntPtr processHandle, IntPtr startAddress, IntPtr parameter,
+                Execution.Win32.NtDll.NT_CREATION_FLAGS creationFlags, int stackZeroBits, int sizeOfStack, int maximumStackSize,
+                IntPtr attributeList);
+        }
+    }
+
+```
+
+So how do you actually use this API? A number of ways:
+
+#### "Statically"
+
+We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we will now build a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
+
+```csharp
+namespace SharpSploit.Execution.DynamicInvoke
+{
+    /// <summary>
+    /// Contains function prototypes and wrapper functions for dynamically invoking NT API Calls.
+    /// </summary>
+    public class Native
+    {     
+        public static IntPtr NtCreateThreadEx(ref IntPtr threadHandle, Execution.Win32.WinNT.ACCESS_MASK desiredAccess,
+            IntPtr objectAttributes, IntPtr processHandle, IntPtr startAddress, IntPtr parameter,
+            Execution.Win32.NtDll.NT_CREATION_FLAGS creationFlags, int stackZeroBits, int sizeOfStack, int maximumStackSize,
+            IntPtr attributeList)
+        { 
+            //Craft an array for the arguments
+            object[] funcargs =
+            {
+                threadHandle, desiredAccess, objectAttributes, processHandle, startAddress, parameter, creationFlags, stackZeroBits,
+                sizeOfStack, maximumStackSize, attributeList
+            };
+
+            return (IntPtr)Generic.DynamicAPIInvoke(@"ntdll.dll", @"NtCreateThreadEx",
+                typeof(DELEGATES.NtCreateThreadEx), ref funcargs);
+        }
+    }
+}
+```
+
+You may use this wrapper to dynamically call `NtCreateThreadEx` as if you were calling any other managed function: 
+
+**TODO: Correct syntax**
+
+```csharp
+//Invoke NtCreateThreadEx using the delegate
+SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx(
+        out threadHandle, AccessMask.SpecificRightsAll | AccessMask.StandardRightsAll, IntPtr.Zero,
+        procHandle, startAddress, IntPtr.Zero, CreationFlags.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
+```
+
+#### "Dynamically".
 
 ## Why?
 
