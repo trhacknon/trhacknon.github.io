@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Enabling Covert Operations - 0: Dynamic Invocation
+title: Enabling Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke)
 ---
 
 *TLDR: The first (and late) post in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. Nothing in this series will be operation-ready. I will provide you knowledge and ingredients, but you must do the work to build operational tooling upon it. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
@@ -145,7 +145,7 @@ SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx(
 
 #### "Dynamically".
 
-You may also use these delegates to invoke unmanaged functions without a manager wrapper. 
+You may also use these delegates to invoke unmanaged functions without a managed wrapper. 
 
 ```csharp
  //Get a pointer to the NtCreateThreadEx function.
@@ -164,11 +164,11 @@ If you wish to use your
 
 ## Why?
 
-This presents several opportunities for offensive tool developers.
+DInvoke presents several opportunities for offensive tool developers.
 
 ### Avoid Suspicious Imports
 
-As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could dynamically load the DLL, get the 
+As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use our api to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler, you would find that `MiniDumpWriteDump` is not referenced in its import table.
 
 ### Unknown Execution Flow at Compile Time
 
