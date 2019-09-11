@@ -11,7 +11,7 @@ On August 5th, [cobbr](https://twitter.com/cobbr_io) merged a Pull Request of mi
 
 ## Not Actually New
 
-I would be very surprised if I am the first offensive tool developer to use this technique. However, since it is new to SharpSploit and I have not seen anyone discuss it before, I decided it was worth a post.
+I am not the first offensive tool developer to use this technique. However, since it is new to SharpSploit and I have not seen anyone discuss it before, I decided it was worth a post.
 
 ### A Legitimate Technique
 
