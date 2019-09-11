@@ -32,16 +32,21 @@ Let's take a look at some of the code in this API:
 ```csharp
 
 /// <summary>
-        /// Dynamically invokes an arbitrary function from a pointer. Useful for manually mapped modules or loading/invoking unmanaged code from memory.
+        /// Dynamically invoke an arbitrary function from a DLL, providing its name, function prototype, and arguments.
         /// </summary>
         /// <author>The Wover (@TheRealWover)</author>
-        /// <param name="FunctionPointer">A pointer to the unmanaged function.</param>
+        /// <param name="DLLName">Name of the DLL.</param>
+        /// <param name="FunctionName">Name of the function.</param>
         /// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
-        /// <param name="Parameters">Arbitrary set of parameters to pass to the function. Can be modified if function uses call by reference.</param>
+        /// <param name="Parameters">Parameters to pass to the function. Can be modified if function uses call by reference.</param>
         /// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
-        public static object DynamicFunctionInvoke(IntPtr FunctionPointer, Type FunctionDelegateType, ref object[] Parameters)
+        public static object DynamicAPIInvoke(string DLLName, string FunctionName, Type FunctionDelegateType, ref object[] Parameters)
         {
-            Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(FunctionPointer, FunctionDelegateType);
+            IntPtr hModule = Execution.Win32.Kernel32.LoadLibrary(DLLName);
+
+            IntPtr pFunction = Execution.Win32.Kernel32.GetProcAddress(hModule, FunctionName);
+
+            Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(pFunction, FunctionDelegateType);
 
             Object result = funcDelegate.DynamicInvoke(Parameters);
 
@@ -50,7 +55,7 @@ Let's take a look at some of the code in this API:
 
 ```
 
-This method has been reduced to effectively two lines of code. The first creates a Delegate from a function pointer that is discovered through a combination of `LoadLibrary` and `GetProcesAdress`. The second invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that they data passed in is structured in the way that the unmanaged code will expect.
+This method has been reduced to effectively four lines of code. The first creates a Delegate from a function pointer that is discovered through a combination of `LoadLibrary` and `GetProcesAdress`. The second invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that they data passed in is structured in the way that the unmanaged code will expect.
 
 The confusing part of this is probably the `Type FunctionDelegateType` parameter. This is where you pass in the function prototype of the unmanaged code that you want to call. If you remember from PInvoke, you set up the function with something like:
 
