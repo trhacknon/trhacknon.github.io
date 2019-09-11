@@ -143,6 +143,23 @@ SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx(
 
 #### "Dynamically".
 
+You may also use these delegates to invoke unmanaged functions without a manager wrapper. 
+
+```csharp
+ //Get a pointer to the NtCreateThreadEx function.
+        IntPtr pFunction = Execution.DynamicInvoke.Generic.GetLibraryAddress(@"ntdll.dll", "NtCreateThreadEx");
+        
+        //Create an instance of a NtCreateThreadEx delegate from our function pointer.
+        DELEGATES.NtCreateThreadEx createThread = (NATIVE_DELEGATES.NtCreateThreadEx)Marshal.GetDelegateForFunctionPointer(
+           pFunction, typeof(NATIVE_DELEGATES.NtCreateThreadEx));
+        
+        //Invoke NtCreateThreadEx using the delegate
+        createThread(ref threadHandle, Execution.Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Execution.Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
+                procHandle, startAddress, IntPtr.Zero, Execution.Win32.NtDll.NT_CREATION_FLAGS.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
+```
+
+If you wish to use your 
+
 ## Why?
 
 This presents several opportunities for offensive tool developers.
