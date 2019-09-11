@@ -55,7 +55,7 @@ Let's take a look at some of the code in this API:
 
 ```
 
-This method has been reduced to effectively four lines of code. The first creates a Delegate from a function pointer that is discovered through a combination of `LoadLibrary` and `GetProcesAdress`. The second invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that they data passed in is structured in the way that the unmanaged code will expect.
+This method has been reduced to effectively four lines of code. The first creates a Delegate from a function pointer that is discovered through a combination of `LoadLibrary` and `GetProcAdress`. The second invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that the data passed in is structured in the way that the unmanaged code will expect.
 
 The confusing part of this is probably the `Type FunctionDelegateType` parameter. This is where you pass in the function prototype of the unmanaged code that you want to call. If you remember from PInvoke, you set up the function with something like:
 
@@ -68,7 +68,7 @@ The confusing part of this is probably the `Type FunctionDelegateType` parameter
             );
 ```
 
-You must also pass in a function prototype for DInvoke. This lets the Delegate know how to setup the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code in C# (by self-injecting shellcode), this is MUCH easier!
+You must also pass in a function prototype for DInvoke. This lets the Delegate know how to set up the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code from memory in C# (by self-injecting shellcode), this is MUCH easier!
 
 The code below demonstrates how this is used for the `NtCreateThreadEx` function in `ntdll.dll`. The delegate (that sets up the function prototype) is stored in the `SharpSploit.Execution.DynamicInvoke.Native.DELEGATES` struct. The wrapper method is `SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx` that takes all of the same parameters that you would expect to use in a normal PInvoke.
 
@@ -102,6 +102,8 @@ So how do you actually use this API? A number of ways:
 #### "Statically"
 
 We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we will now build a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
+
+It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
 
 ```csharp
 namespace SharpSploit.Execution.DynamicInvoke
