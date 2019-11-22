@@ -466,6 +466,8 @@ However, using C++/CLI for loading Assemblies presents an interesting opportunit
 
 It is worth noting that managed code in a Mixed Assembly is NOT subject to AMSI. Just like executing a normal Assembly from disk, it will be subject to any AV analysis that scans files on disk. But it will not be subject to AMSI because it is never part of an Assembly loaded from memory. So if you can execute all of your malicious .NET logic without loading any Assembly from memory, you would be well advised to do so to avoid additional monitoring. 
 
+If you would like to know more about AMSI bypasses developed in unmanaged code, Odzhan and I created some for a modular bypass system in Donut: (https://modexp.wordpress.com/2019/06/03/disable-amsi-wldp-dotnet/)
+
 ## Further Reading
 
 * Loader Lock: (https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017)
