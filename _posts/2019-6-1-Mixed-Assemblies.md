@@ -221,20 +221,6 @@ In the New Project dialog, under Installed Templates, select "Visual C++" > "CLR
 * Notes on how to designate a file as not /clr.
 * Change Precompiled Headers to Create rather than Yes.
 
-It takes a bit of convincing to get Visual Studios to use C++/CLI. Just inserting the code above into a project will result in compiler errors. As such, follow the guide below to ensure that your project can compile:
-
-If you are using a new project and want to add a new managed code .cpp, you must change some settings in Visual Studio. 1. 
-
-1. Create a .cpp Source File like normal.
-2. Right click on it in the Solution Explorer and click Properties.
-3. Go to Configuration Properties > C/C++ > General > Common Language RunTime Support and select the "Common Language RunTime Support /clr" option. Do this for both Debug and Release Mode.
-4. In debug mode, open the Properties for the file like above. Navigate to Properties > C/C++ > General > Debug Information Format and select the "None" option.
-5. In both Debug and Release mode, open the Properties for the file like above. Navigate to Properties > C/C++ > Code Generation > Enable C++ Exceptions and select "No".
-6. Follow the instructions in this article to disable Runtime Checking for Debug mode: https://gregs-blog.com/2007/12/31/how-to-fix-visual-studio-bug-rtc1-and-clr-options-are-incompatible/
-7. In both Debug and Release mode, open the Properties for the file like above. Navigate to Properties > C/C++ > Precompiled Header option and select "Not using Precompiled Headers".
-8. The build should now succeed.
-9. Test loading the DLL with the DemoLoad program.
-
 ### Staged or Stageless?
 
 Instructions for how to add a payload as a resource with Visual Studios.
