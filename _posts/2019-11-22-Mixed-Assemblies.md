@@ -87,7 +87,7 @@ Both examples demonstrate how to handle loading Assemblies in either DLL or EXE 
 
 The target Assembly payload may be passed in through your favorite mechanism. My favorite is as a packed resource embedded into the stager. The most covert variant of such is to use steganography to embed your encrypted payload inside an image, then include that as an icon resource. Doing so results in only one "file" on-disk and essentiallly wraps your easily-reversible .NET payload in a less-reversible unmanaged program. That is the example that is provided. The section below explains how to do this in Visual Studios. Other options include as an embedded string, a file downloaded through WebClient, or as a command-line argument. Really, it is up to you, so figure out yourself. ;-)
 
-Using C++/CLI can take some getting used it. Each module must be designated as CLR code in Visual Studios. Furthermore, several properties and settings must be turned on/off for a build to be successful. My current strategy (beyond the next section) is to  keep running the "Build" command and Googling the errors until I stop getting them. This link can help in the meantime: (https://blogs.msdn.microsoft.com/calvin_hsia/2013/08/30/call-managed-code-from-your-c-code/)
+Using C++/CLI can take some getting used to. Each module must be designated as CLR code in Visual Studios. Furthermore, several properties and settings must be turned on/off for a build to be successful. My current strategy (beyond the next section) is to  keep running the "Build" command and Googling the errors until I stop getting them. This link can help in the meantime: (https://blogs.msdn.microsoft.com/calvin_hsia/2013/08/30/call-managed-code-from-your-c-code/)
 
 
 ### Getting Visual Studios to Cooperate
@@ -259,6 +259,157 @@ But, anyway, it works.
 
 You can watch a [video](https://vimeo.com/338462989) of this succeeding on Vimeo.
 
+# Jumping from Native to Managed Code
+
+The Manager library demonstrates how you may define both managed and native C++ in the same project. Suppose you defined the following managed functions.
+
+### managed.c
+```cpp
+//An example native function that just prints a hello statement.
+void Example_Managed_SayHello(std::string message)
+{
+	//Convert the C++ string to a C-style string, then to a managed string.
+	System::String^ managedMessage =
+		System::Runtime::InteropServices::Marshal::PtrToStringAnsi(
+		(System::IntPtr) (char*) message.c_str());
+
+	//Print the string that was passed in.
+	System::Console::WriteLine("Hello from managed code! Message: " + managedMessage);
+
+}
+
+//An example native function that just prints pops a command prompt.
+void Example_Managed_PopCmd()
+{
+	System::Diagnostics::Process^ process = gcnew System::Diagnostics::Process();
+	process->StartInfo->FileName = "C:\\WINDOWS\\system32\\cmd.exe";
+	process->Start();
+}
+```
+
+To invoke them from an unmanaged function, you must create a header file that defines these managed functions and makes them available to native code. 
+
+### managed.h
+```cpp
+
+#pragma once
+
+#include "native.h"
+#include <string>
+
+using namespace std;
+
+//These functions are provided as examples of how to call native code from managed code.
+
+//An example managed function that just prints a hello statement.
+extern void Example_Managed_SayHello(std::string message);
+
+//An example managed function that just prints pops a command prompt.
+extern void Example_Managed_PopCmd();
+```
+
+You may then invoke them from native code, like so:
+
+### native.cpp
+```cpp
+#include "managed.h"
+
+//An example native function that invokes managed functions.
+void Example_Native_CallManaged()
+{
+	//Call the managed function to print a message.
+	Example_Managed_SayHello("I was invoked by a native function.");
+
+	//Call the managed function to pop a command prompt
+	Example_Managed_PopCmd();
+}
+```
+
+
+
+### Jumping from Managed to Native code
+
+You may also jump back from managed code into native code at any time and do so cleanly as you would execute any normal function. How you may ask? The magic of It Just Works.
+
+Suppose you defined a couple of native functions:
+
+### native.cpp
+```cpp
+//An example native function that just prints a hello statement.
+void Example_Native_SayHello(std::string message)
+{
+	std::cout << "Hello from native code! Message: " << message;
+}
+
+//An example native function that just prints pops a command prompt.
+void Example_Native_PopCalc()
+{
+	//For some reason ShellExecute was not imported from windows.h, so we are using CreateProcess.
+
+	// additional information
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	// set the size of the structures
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// start the program up
+	CreateProcess(L"C:\\WINDOWS\\system32\\calc.exe",   // the path
+		NULL,        // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		0,              // No creation flags
+		NULL,           // Use parent's environment block
+		NULL,           // Use parent's starting directory 
+		&si,            // Pointer to STARTUPINFO structure
+		&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+	);
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+}
+```
+
+You must define them in a header file as you normally would:
+
+### native.h
+```cpp
+#pragma once
+
+#include <windows.h>
+#include <iostream>
+#include "Resource.h"
+#include "managed.h"
+
+//These functions are provided as examples of how to call native code from managed code.
+
+//An example native function that just prints a hello statement.
+void Example_Native_SayHello(std::string message);
+
+//An example native function that just pops a command prompt.
+void Example_Native_PopCalc();
+```
+
+To invoke them from managed code you must import the native header file. Afterwards, call the native functions like you would normally. Make sure to [marshall data structures properly](https://docs.microsoft.com/en-us/cpp/dotnet/how-to-marshal-structures-using-cpp-interop?view=vs-2019).
+
+### native.cpp
+```cpp
+#include "managed.h"
+
+//An example native function that invokes managed functions.
+void Example_Native_CallManaged()
+{
+	//Call the managed function to print a message.
+	Example_Managed_SayHello("I was invoked by a native function.");
+
+	//Call the managed function to pop a command prompt
+	Example_Managed_PopCmd();
+}
+```
+
 # Detecting CLR Injection
 
 If you have been reading my blog posts about Donut, you may be familiar with ModuleMonitor. It uses WMI Event Win32_ModuleLoadTrace to monitor for module loading. For each module that is loaded, it captures information about the process that loaded the module.
@@ -307,11 +458,20 @@ It is important to note that this behaviour represents all CLR Injection techniq
 
 You could also watch for loads of `clr.dll`. Or use ETW to subscribe to Assembly Load events. I'll leave those as exercises for you.
 
+## AMSI in .NET v4.8
+
+Starting in .NET v4.8, AMSI integration was added to the CLR for loading Assemblies from memory. Like with other Assembly loading techniques, usage of the Reflection API in C++/CLI is subject to AMSI monitoring.
+
+However, using C++/CLI for loading Assemblies presents an interesting opportunity: you may use an AMSI bypass without requiring your bypass code to pass through AMSI. AMSI bypasses are normally faced with a chicken-and-the-egg problem. To bypass AMSI you must execute suspicous code. That suspicious code must pass safely pass through the AMSI buffer in order to execute and unhook AMSI. However, if you use unmanaged code to unhook AMSI, then the bypassing code executes without any inspection by AMSI itself. So if you want to bypass AMSI you should do it in native C++ BEFORE loading your payload.
+
+It is worth noting that managed code in a Mixed Assembly is NOT subject to AMSI. Just like executing a normal Assembly from disk, it will be subject to any AV analysis that scans files on disk. But it will not be subject to AMSI because it is never part of an Assembly loaded from memory. So if you can execute all of your malicious .NET logic without loading any Assembly from memory, you would be well advised to do so to avoid additional monitoring. 
+
 ## Further Reading
 
 * Loader Lock: (https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017)
 * How C++/CLI Initializes Assemblies (and avoids loader lock): (https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017)
 * Run an unmanaged DLL from memory: (https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/)
+* Double Thunking (implications of jumping from managed to unmanaged code): (https://docs.microsoft.com/en-us/cpp/dotnet/double-thunking-cpp?view=vs-2019)
 
 
 ## Credits
