@@ -251,18 +251,22 @@ void Example_Native_PopCalc();
 
 To invoke them from managed code you must import the native header file. Afterwards, call the native functions like you would normally. Make sure to [marshall data structures properly](https://docs.microsoft.com/en-us/cpp/dotnet/how-to-marshal-structures-using-cpp-interop?view=vs-2019).
 
-### native.cpp
+### managed.cpp
 ```cpp
+#include "stdafx.h"
 #include "managed.h"
+#include "native.h"
+#using <System.dll>
+#using <mscorlib.dll>
 
-//An example native function that invokes managed functions.
-void Example_Native_CallManaged()
+//An example managed function that calls native functions.
+void Example_Managed_CallNative()
 {
-	//Call the managed function to print a message.
-	Example_Managed_SayHello("I was invoked by a native function.");
+	//Call the native function to print a message.
+	Example_Native_SayHello("I was invoked by a managed function.");
 
-	//Call the managed function to pop a command prompt
-	Example_Managed_PopCmd();
+	//Call the native function to pop a calculator
+	Example_Native_PopCalc();
 }
 ```
 
