@@ -3,11 +3,9 @@ layout: post
 title: Mixed Assemblies - Crafting Flexible C++ Reflective Stagers for .NET Assemblies
 ---
 
-*TLDR: There is not only one type of CLR Injection. You can compile C++ with the /clr option to produce Mixed Assemblies, programs that contain both native and managed code. This can be used to reflectively load .NET Assemblies using native(ish) stagers.*
-
-# TLDR
 *One of the ways to load .NET Assemblies through unmanaged code is to use C++/CLI. What is that, you may ask? It is Visual C++ that can be compiled to CIL rather than native machine code. You may specify that code is either managed or native. Native code is written the same as normal C++. The managed version, however, uses a different syntax. To compile managed C++, you must use the /clr option on the Visual Studios compiler. This repo provides some code samples that demonstrate how to do this. Warning, the code is a bit wonky. That is partly because I've never gotten around to cleaning it up and also because this is just meant to make you aware that C++/CLI is a thing.*
 
+Note: This project is not presented with my usual quality. :-) I got it working a while ago and have never got around to finishing it. Rather than leave it around collecting dust, I have cleaned it up a bit and put together an explanation. Hopefully it helps.
 
 # Advancing Tradecraft - Context
 
@@ -97,7 +95,7 @@ Using C++/CLI can take some getting used it. Each module must be designated as C
 In the New Project dialog, under Installed Templates, select "Visual C++" > "CLR", and then either the Console Application template for EXEs or the Class Library template for DLLs.
 
 * For each file/project that you want to be built into managed code, you must set the Common Language Runtime Support option to `/clr`.
-![Alt text](https://github.com/TheWover/Manager/blob/master/MixedAssembly/img/SetCLROn.PNG?raw=true "CLR Support On")
+![_config.yml]({{ site.baseurl }}/images/Manager/SetCLROn.PNG "CLR Support On")
 * Change Precompiled Headers to Create rather than Yes.
 
 ### Using a Resource for Payload Delivery
@@ -106,15 +104,15 @@ Instructions for how to add a payload as a resource with Visual Studios.
 
 1. Create a solution as a Visual C++ project in Visual Studios.
 2. Right click "Resource Files" in the Solution Explorer and select Add > Resource...
-![Alt text](https://github.com/TheWover/Manager/blob/master/MixedAssembly/img/AddResource.png?raw=true "Add a Resource")
+![_config.yml]({{ site.baseurl }}/images/Manager/AddResource.png "Add a Resource")
 3. Click the Import... button.
 4. Browse to the DLL or EXE you wish to use as a payload. Make sure to select All Files in the File Types of the File Browser.
-![Alt text](https://github.com/TheWover/Manager/blob/master/MixedAssembly/img/SelectAllFiles.png?raw=true "Select All files")
+![_config.yml]({{ site.baseurl }}/images/Manager/SelectAllFiles.png "Select All files")
 5. A popup will appear that asks you what type of resource it is. You can choose whatever name you want for the type. For the tutorial, we will use "DLLENCLOSED" for DLLs, and "EXEENCLOSED" for EXEs. Click OK.
-![Alt text](https://github.com/TheWover/Manager/blob/master/MixedAssembly/img/DLLENCLOSED.PNG?raw=true "DLLENCLOSED")
+![_config.yml]({{ site.baseurl }}/images/Manager/DLLENCLOSED.PNG? "DLLENCLOSED")
 6. There should now be a resource of type DLLENCLOSED. By default, it will be named IDR_DLLENCLOSED1. It will be embedded into your built DLL or EXE within the .rsrc PE section.
 5. Open the main.cpp source file. Make sure that the type and name in in the FindResourceA() function call reflect the correct resource name and type. To confirm the name and type of the resource, open the .rc file under Resource Files in the Solution Explorer and look at the left-hand pane.
-![Alt text](https://github.com/TheWover/Manager/blob/master/MixedAssembly/img/Confirm.PNG?raw=true "Confirm Resource exists")
+![_config.yml]({{ site.baseurl }}/images/Manager/Confirm.PNG "Confirm Resource exists")
 6. The resource should now be embedded. It can be passed to the Assembly.Load function in a raw byte[] format.
 
 # A Case Study
@@ -300,7 +298,8 @@ ModuleMonitor uses the following implementation of this logic in C#. The full co
 ```
 
 When the detection is successful, you should get a detection that looks like the following.
-![Alt text](https://github.com/TheWover/TheWover.github.io/blob/manager/images/Introducing_Donut/detected.png?raw=true "CLR Injection Detected")
+
+![_config.yml]({{ site.baseurl }}/images/Manager/detected.png "CLR Injection Detected")
 
 It is important to note that this behaviour represents all CLR Injection techniques, of which there are several. This detection should work for donut, as well as other tools such as Cobalt Strike's 'execute-assembly' command.
 
