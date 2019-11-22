@@ -40,7 +40,7 @@ C++/CLI is a legacy version of C++ that was specifically designed to allow for e
 
 You may choose on a per-module, per-file, or even per-function basis whether or not your C++ code is managed or native. Rather than using P/Invoke to go from managed -> unmanaged code, you may simply call a managed C++/CLI function from native C++. You may also go the other direction, allowing you to truly move between managed and unmanaged code at will.
 
-Why would you use it legitimately?: [https://stackoverflow.com/questions/1933210/c-cli-why-should-i-use-it ]
+Why would you use it legitimately?: (https://stackoverflow.com/questions/1933210/c-cli-why-should-i-use-it)
 
 ### Mixed Assemblies - Both & Neither
 
@@ -87,7 +87,7 @@ Both examples demonstrate how to handle loading Assemblies in either DLL or EXE 
 
 The target Assembly payload may be passed in through your favorite mechanism. My favorite is as a packed resource embedded into the stager. The most covert variant of such is to use steganography to embed your encrypted payload inside an image, then include that as an icon resource. Doing so results in only one "file" on-disk and essentiallly wraps your easily-reversible .NET payload in a less-reversible unmanaged program. That is the example that is provided. The section below explains how to do this in Visual Studios. Other options include as an embedded string, a file downloaded through WebClient, or as a command-line argument. Really, it is up to you, so figure out yourself. ;-)
 
-Using C++/CLI can take some getting used it. Each module must be designated as CLR code in Visual Studios. Furthermore, several properties and settings must be turned on/off for a build to be successful. My current strategy is keep running the "Build" command and Googling the errors until I stop getting them. When I have developed a better technique, I will update this Readme. ;-) This link can help in the meantime: [https://blogs.msdn.microsoft.com/calvin_hsia/2013/08/30/call-managed-code-from-your-c-code/]
+Using C++/CLI can take some getting used it. Each module must be designated as CLR code in Visual Studios. Furthermore, several properties and settings must be turned on/off for a build to be successful. My current strategy is keep running the "Build" command and Googling the errors until I stop getting them. When I have developed a better technique, I will update this Readme. ;-) This link can help in the meantime: (https://blogs.msdn.microsoft.com/calvin_hsia/2013/08/30/call-managed-code-from-your-c-code/)
 
 
 ### Getting Visual Studios to Cooperate
@@ -307,12 +307,12 @@ You could also watch for loads of `clr.dll`. Or use ETW to subscribe to Assembly
 
 ## Further Reading
 
-* Loader Lock: [https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017]
-* How C++/CLI Initializes Assemblies (and avoids loader lock): [https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017]
-* Run an unmanaged DLL from memory: [https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/]
+* Loader Lock: (https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017)
+* How C++/CLI Initializes Assemblies (and avoids loader lock): (https://docs.microsoft.com/en-us/cpp/dotnet/initialization-of-mixed-assemblies?view=vs-2017)
+* Run an unmanaged DLL from memory: (https://modexp.wordpress.com/2019/06/24/inmem-exec-dll/)
 
 
 ## Credits
-This whole project is based off of a hunch I had, confirmed by a response to this StackOverflow question: [https://stackoverflow.com/questions/8206736/c-sharp-equivalent-of-dllmain-in-c-winapi/9745422#9745422]
+This whole project is based off of a hunch I had, confirmed by a response to this StackOverflow question: (https://stackoverflow.com/questions/8206736/c-sharp-equivalent-of-dllmain-in-c-winapi/9745422#9745422)
 
 This project began as a PoC of that article, and has been cleaned up and expanded to make it more generally useful.
