@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Enabling Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke)
+title: Enabling Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke & API Hooks)
 ---
 
 *TLDR: How to dynamically invoke unmanaged code from memory or disk while avoiding API Hooking and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
@@ -178,7 +178,7 @@ DInvoke presents several opportunities for offensive tool developers.
 
 ### Avoid Suspicious Imports
 
-As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use our api to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler, you would find that `MiniDumpWriteDump` is not referenced in its import table.
+As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler, you would find that `MiniDumpWriteDump` is not referenced in its import table.
 
 ### Manual Mapping
 
