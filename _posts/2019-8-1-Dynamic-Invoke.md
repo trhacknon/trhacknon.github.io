@@ -161,9 +161,16 @@ The section above shows how you would use Delegates and the DInvoke API. But how
 
 The easiest way to locate and execute a function is to use the `DynamicAPIInvoke` function shown above in the first code example. It uses `GetLibraryAddress` to locate a function.
 
-`GetLibraryAddress`: First, checks if the module is already loaded using `GetLoadedModuleAddress`. If not, it loads the module into the process using `LoadModuleFromDisk`, which uses the NT API call `LdrLoadDll` to load the DLL. 
-`GetLoadedModuleAddress`: Uses `Process.GetCurrentProcess().Modules` to check if a module on disk is already loaded into the current process.
-`LoadModuleFromDisk`: This will generate an Image Load ("modload") event for the process, which could be used as part of a detection signal.
+* `GetLibraryAddress`: First, checks if the module is already loaded using `GetLoadedModuleAddress`. If not, it loads the module into the process using `LoadModuleFromDisk`, which uses the NT API call `LdrLoadDll` to load the DLL. Either way, it then uses `GetExportAddress` to find the function in the module. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
+* `GetLoadedModuleAddress`: Uses `Process.GetCurrentProcess().Modules` to check if a module on disk is already loaded into the current process. If so, returns the address of that module.
+* `LoadModuleFromDisk`: This will generate an Image Load ("modload") event for the process, which could be used as part of a detection signal.
+* `GetExportAddress`: Starting from the base address of a module in memory, parses the PE headers of the module to locate a particular function. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
+
+Additionally, we have provided several ways to load modules from memory rather than from disk.
+* `MapModuleToMemory`: Manually maps a module into dynamically allocated memory, properly aligning the PE sections, correcting memory permissions, and fixing the Import Address Table. Can take either a byte array or the name of a file on disk.
+* `MapModuleToMemoryAddress`: Manually maps a module that is already in memory (contained in a byte array), to a specific location in memory.
+* `OverloadModule`: Uses Module Overloading to map a module into memory backed by a decoy DLL on disk. Chooses a random decoy DLL that is not already loaded, is signed, and exists in `%WINDIR%\System32`. Threads that execute code in the module will appear to be executing code from a legitimate DLL. Can take either a byte array or the name of a file on disk.
+
 
 ## Why?
 
