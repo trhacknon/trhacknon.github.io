@@ -3,15 +3,15 @@ layout: post
 title: Enabling Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke)
 ---
 
-*TLDR: Hw to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
+*TLDR: How to dynamically invoke unmanaged code from memory or disk while avoiding API Hooking and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
 
 # Dynamic Invocation - D/Invoke
 
-Over the past few months, myself and FuzzySecurity (b33f) have quitely been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call arbitrary unmanaged code from memory (while passing parameters on the stack), allowing you to bypass API hooking 
+Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have quitely been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call arbitrary unmanaged code from memory (while passing parameters on the stack), allowing you to bypass API hooking in a variety of ways. Overall. DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code. 
 
 ### Delegates
 
-So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we PInvoke only two API calls: `LoadLibrary` and `GetProcAddress`. The former loads a DLL from disk into your current process. The latter gets a pointer to a function in a DLL that has been loaded into the current process. We may call that function from the pointer while passing in our parameters on the stack.
+So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we use any way we would like to load a DLL into memory. Then, we get a pointer to a function in that DLL. We may call that function from the pointer while passing in our parameters.
 
 By leveraging this dynamic loading API rather than the static loading API that sits behind PInvoke, you avoid directly importing suspicious API calls into your .NET Assembly. Additionally, this API lets you easily invoke unmanaged code from memory in C# (passing in parameters and receiving output) without doing some hacky workaround like self-injecting shellcode.
 
@@ -54,17 +54,17 @@ Let's take a look at some of the code in this API:
 
 ```
 
-This method has been reduced to effectively four lines of code. The first creates a Delegate from a function pointer that is discovered through a combination of `LoadLibrary` and `GetProcAdress`. The second invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that the data passed in is structured in the way that the unmanaged code will expect.
+These two functions are the core of the DInvoke API. The second is the most important. It creates a Delegate from a function pointer and invokes the function wrapped by the delegate, passing in parameters provided by you. The parameters are passed in as an array of Objects so that you can pass in whatever data you need in whatever form. You must take care to ensure that the data passed in is structured in the way that the unmanaged code will expect.
 
 The confusing part of this is probably the `Type FunctionDelegateType` parameter. This is where you pass in the function prototype of the unmanaged code that you want to call. If you remember from PInvoke, you set up the function with something like:
 
 ```csharp
 [DllImport("kernel32.dll")]
-            public static extern IntPtr OpenProcess(
-                ProcessAccessFlags dwDesiredAccess,
-                bool bInheritHandle,
-                UInt32 dwProcessId
-            );
+public static extern IntPtr OpenProcess(
+        ProcessAccessFlags dwDesiredAccess,
+        bool bInheritHandle,
+        UInt32 dwProcessId
+);
 ```
 
 You must also pass in a function prototype for DInvoke. This lets the Delegate know how to set up the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code from memory in C# (by self-injecting shellcode), this is MUCH easier!
@@ -79,20 +79,34 @@ namespace SharpSploit.Execution.DynamicInvoke
     /// Contains function prototypes and wrapper functions for dynamically invoking NT API Calls.
     /// </summary>
     public class Native
-    {        
-        /// <summary>
-        /// Holds delegates for API calls in the NT Layer.
-        /// Must be public so that they may be used with SharpSploit.Execution.DynamicInvoke.Generic.DynamicFunctionInvoke
-        /// </summary>
-        public struct DELEGATES
+    {
+        public static Execute.Native.NTSTATUS NtCreateThreadEx(
+            ref IntPtr threadHandle,
+            Execute.Win32.WinNT.ACCESS_MASK desiredAccess,
+            IntPtr objectAttributes, IntPtr processHandle,
+            IntPtr startAddress,
+            IntPtr parameter,
+            bool createSuspended,
+            int stackZeroBits,
+            int sizeOfStack,
+            int maximumStackSize,
+            IntPtr attributeList)
         {
-            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-            public delegate IntPtr NtCreateThreadEx(out IntPtr threadHandle, Execution.Win32.WinNT.ACCESS_MASK desiredAccess,
-                IntPtr objectAttributes, IntPtr processHandle, IntPtr startAddress, IntPtr parameter,
-                Execution.Win32.NtDll.NT_CREATION_FLAGS creationFlags, int stackZeroBits, int sizeOfStack, int maximumStackSize,
-                IntPtr attributeList);
+            // Craft an array for the arguments
+            object[] funcargs =
+            {
+                threadHandle, desiredAccess, objectAttributes, processHandle, startAddress, parameter, createSuspended, stackZeroBits,
+                sizeOfStack, maximumStackSize, attributeList
+            };
+
+            Execute.Native.NTSTATUS retValue = (Execute.Native.NTSTATUS)Generic.DynamicAPIInvoke(@"ntdll.dll", @"NtCreateThreadEx",
+                typeof(DELEGATES.NtCreateThreadEx), ref funcargs);
+
+            // Update the modified variables
+            threadHandle = (IntPtr)funcargs[0];
+
+            return retValue;
         }
-    }
 
 ```
 
@@ -133,13 +147,14 @@ namespace SharpSploit.Execution.DynamicInvoke
 
 You may use this wrapper to dynamically call `NtCreateThreadEx` as if you were calling any other managed function: 
 
-**TODO: Correct syntax**
-
 ```csharp
-//Invoke NtCreateThreadEx using the delegate
-SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx(
-        out threadHandle, AccessMask.SpecificRightsAll | AccessMask.StandardRightsAll, IntPtr.Zero,
-        procHandle, startAddress, IntPtr.Zero, CreationFlags.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
+IntPtr threadHandle = new IntPtr();
+
+//Dynamically invoke NtCreateThreadEx to create a thread at the address specified in the target process.
+result = DynamicInvoke.Native.NtCreateThreadEx(ref threadHandle, Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
+                    process.Handle, baseAddr, IntPtr.Zero, suspended, 0, 0, 0, IntPtr.Zero);
+
+// The "threadHandle" variable will now be updated with a pointer to the handle for the new thread. 
 ```
 
 #### "Dynamically".
@@ -148,15 +163,15 @@ You may also use these delegates to invoke unmanaged functions without a managed
 
 ```csharp
  //Get a pointer to the NtCreateThreadEx function.
-        IntPtr pFunction = Execution.DynamicInvoke.Generic.GetLibraryAddress(@"ntdll.dll", "NtCreateThreadEx");
-        
-        //Create an instance of a NtCreateThreadEx delegate from our function pointer.
-        DELEGATES.NtCreateThreadEx createThread = (NATIVE_DELEGATES.NtCreateThreadEx)Marshal.GetDelegateForFunctionPointer(
-           pFunction, typeof(NATIVE_DELEGATES.NtCreateThreadEx));
-        
-        //Invoke NtCreateThreadEx using the delegate
-        createThread(ref threadHandle, Execution.Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Execution.Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
-                procHandle, startAddress, IntPtr.Zero, Execution.Win32.NtDll.NT_CREATION_FLAGS.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
+IntPtr pFunction = Execution.DynamicInvoke.Generic.GetLibraryAddress(@"ntdll.dll", "NtCreateThreadEx");
+
+//Create an instance of a NtCreateThreadEx delegate from our function pointer.
+DELEGATES.NtCreateThreadEx createThread = (NATIVE_DELEGATES.NtCreateThreadEx)Marshal.GetDelegateForFunctionPointer(
+   pFunction, typeof(NATIVE_DELEGATES.NtCreateThreadEx));
+
+//Invoke NtCreateThreadEx using the delegate
+createThread(ref threadHandle, Execution.Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Execution.Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
+        procHandle, startAddress, IntPtr.Zero, Execution.Win32.NtDll.NT_CREATION_FLAGS.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
 ```
 
 If you wish to use your 
@@ -169,11 +184,13 @@ DInvoke presents several opportunities for offensive tool developers.
 
 As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use our api to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler, you would find that `MiniDumpWriteDump` is not referenced in its import table.
 
+### Manual Mapping
+
 ### Unknown Execution Flow at Compile Time
 
 ### Shellcode Execution
 
-### Manual Mapping
+Demonstrated in the Shellcode executor in SharpSploit.
 
 ## How?
 
@@ -185,83 +202,8 @@ Let's walk through an example. We will build a shellcode injector that only uses
 
 ## Room for Improvement
 
-* P/Invoke Innocuous API calls to force a library to load. Then use GetModuleHandle & GetProcAddress.
-* Using a PE reader to get the symbol addresses
-* Walking the PEB / API hashing
 
 ## Conclusion
-
-Next up, a modular shellcode injection library for SharpSploit.
-
----
-layout: post
-title: Enabling Covert Operations - 1: Modular Shellcode Injection
----
-
-# Covert Remote Injection
-
-## General Tradecraft & Techniques
-
-### Only ntdll.dll
-
-### Section Mapping
-
-### Local Views
-
-### RWX || RX?
-
-### Still Room For Improvement
-
-### Win32/NT API Call Table
-
-The table below explains every Windows API call that is used in this code. Name, description, usage, works on remote processes, CFG-evasion, CIG-evasion. 
-
-## Design Philosophy
-
-### Modularity
-
-### Who Should Choose How A Tool Can Be Used: The Designer or the Operator?
-
-## Implementation in SharpSploit
-
-### Remote Thread Creation
-
-### APC Injection
-
-### Threat Hijacking
-
-### General Remote Injection
-
----
-layout: post
-title: Enabling Covert Operations - 2: Manually Mapping DLLs (Unmanaged Reflection)
----
-Create a set of classes for discovering and using symbols in unmanaged DLLs. Have an `UnmanagedPE` class with:
-
-* UnmanangedPE(byte[] PEBytes)
-* UnmanagedPE.Import(byte[] PEBytes) //
-* private Unmanaged.SymbolStore //public get
-
-* SymbolStore
-* private byte[] SymbolStore.PEBytes // with public get
-* public bool SymbolStore.Discover(byte[] PEBytes) //Fills the store with Symbols
-* private Symbol[] SymbolStore.Symbols //Set of symbols advertised by the IAT
-* public Symbol SymbolStore.FindSymbol(string symbolName)
-
-* Symbol
-* public string[] Symbol.Name //Symbol names(s)
-* public delegate Symbol.Signature //Delegate
-* public int Symbol.RelativeOffset //Offset from the base address of the module
-* public IntPtr Symbol.Ptr //Absolute virtual address
-
-* Import everything in the IAT
-* Function Hashing (Maru)
-* Manually Map DLL
-
----
-layout: post
-title: Enabling Covert Operations - 3: Easily Using Arbitrary Syscalls from Managed Code
----
 
 # Conclusions
 
