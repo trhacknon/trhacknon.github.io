@@ -23,34 +23,34 @@ Let's take a look at some of the code in this API:
 
 ```csharp
 
-        /// <summary>
-        /// Dynamically invoke an arbitrary function from a DLL, providing its name, function prototype, and arguments.
-        /// </summary>
-        /// <author>The Wover (@TheRealWover)</author>
-        /// <param name="DLLName">Name of the DLL.</param>
-        /// <param name="FunctionName">Name of the function.</param>
-        /// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
-        /// <param name="Parameters">Parameters to pass to the function. Can be modified if function uses call by reference.</param>
-        /// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
-        public static object DynamicAPIInvoke(string DLLName, string FunctionName, Type FunctionDelegateType, ref object[] Parameters)
-        {
-            IntPtr pFunction = GetLibraryAddress(DLLName, FunctionName);
-            return DynamicFunctionInvoke(pFunction, FunctionDelegateType, ref Parameters);
-        }
+/// <summary>
+/// Dynamically invoke an arbitrary function from a DLL, providing its name, function prototype, and arguments.
+/// </summary>
+/// <author>The Wover (@TheRealWover)</author>
+/// <param name="DLLName">Name of the DLL.</param>
+/// <param name="FunctionName">Name of the function.</param>
+/// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
+/// <param name="Parameters">Parameters to pass to the function. Can be modified if function uses call by reference.</param>
+/// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
+public static object DynamicAPIInvoke(string DLLName, string FunctionName, Type FunctionDelegateType, ref object[] Parameters)
+{
+    IntPtr pFunction = GetLibraryAddress(DLLName, FunctionName);
+    return DynamicFunctionInvoke(pFunction, FunctionDelegateType, ref Parameters);
+}
 
-        /// <summary>
-        /// Dynamically invokes an arbitrary function from a pointer. Useful for manually mapped modules or loading/invoking unmanaged code from memory.
-        /// </summary>
-        /// <author>The Wover (@TheRealWover)</author>
-        /// <param name="FunctionPointer">A pointer to the unmanaged function.</param>
-        /// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
-        /// <param name="Parameters">Arbitrary set of parameters to pass to the function. Can be modified if function uses call by reference.</param>
-        /// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
-        public static object DynamicFunctionInvoke(IntPtr FunctionPointer, Type FunctionDelegateType, ref object[] Parameters)
-        {
-            Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(FunctionPointer, FunctionDelegateType);
-            return funcDelegate.DynamicInvoke(Parameters);
-        }
+/// <summary>
+/// Dynamically invokes an arbitrary function from a pointer. Useful for manually mapped modules or loading/invoking unmanaged code from memory.
+/// </summary>
+/// <author>The Wover (@TheRealWover)</author>
+/// <param name="FunctionPointer">A pointer to the unmanaged function.</param>
+/// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
+/// <param name="Parameters">Arbitrary set of parameters to pass to the function. Can be modified if function uses call by reference.</param>
+/// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
+public static object DynamicFunctionInvoke(IntPtr FunctionPointer, Type FunctionDelegateType, ref object[] Parameters)
+{
+    Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(FunctionPointer, FunctionDelegateType);
+    return funcDelegate.DynamicInvoke(Parameters);
+}
 
 ```
 
@@ -69,7 +69,13 @@ public static extern IntPtr OpenProcess(
 
 You must also pass in a function prototype for DInvoke. This lets the Delegate know how to set up the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code from memory in C# (by self-injecting shellcode), this is MUCH easier!
 
-The code below demonstrates how this is used for the `NtCreateThreadEx` function in `ntdll.dll`. The delegate (that sets up the function prototype) is stored in the `SharpSploit.Execution.DynamicInvoke.Native.DELEGATES` struct. The wrapper method is `SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx` that takes all of the same parameters that you would expect to use in a normal PInvoke.
+#### Using DInvoke
+
+We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we will now build a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
+
+It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
+
+The code below demonstrates how DInvoke is used for the `NtCreateThreadEx` function in `ntdll.dll`. The delegate (that sets up the function prototype) is stored in the `SharpSploit.Execution.DynamicInvoke.Native.DELEGATES` struct. The wrapper method is `SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx` that takes all of the same parameters that you would expect to use in a normal PInvoke.
 
 ```csharp
 
@@ -110,41 +116,6 @@ namespace SharpSploit.Execution.DynamicInvoke
 
 ```
 
-So how do you actually use this API? A number of ways:
-
-#### "Statically"
-
-We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we will now build a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
-
-It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
-
-```csharp
-namespace SharpSploit.Execution.DynamicInvoke
-{
-    /// <summary>
-    /// Contains function prototypes and wrapper functions for dynamically invoking NT API Calls.
-    /// </summary>
-    public class Native
-    {     
-        public static IntPtr NtCreateThreadEx(ref IntPtr threadHandle, Execution.Win32.WinNT.ACCESS_MASK desiredAccess,
-            IntPtr objectAttributes, IntPtr processHandle, IntPtr startAddress, IntPtr parameter,
-            Execution.Win32.NtDll.NT_CREATION_FLAGS creationFlags, int stackZeroBits, int sizeOfStack, int maximumStackSize,
-            IntPtr attributeList)
-        { 
-            //Craft an array for the arguments
-            object[] funcargs =
-            {
-                threadHandle, desiredAccess, objectAttributes, processHandle, startAddress, parameter, creationFlags, stackZeroBits,
-                sizeOfStack, maximumStackSize, attributeList
-            };
-
-            return (IntPtr)Generic.DynamicAPIInvoke(@"ntdll.dll", @"NtCreateThreadEx",
-                typeof(DELEGATES.NtCreateThreadEx), ref funcargs);
-        }
-    }
-}
-```
-
 You may use this wrapper to dynamically call `NtCreateThreadEx` as if you were calling any other managed function: 
 
 ```csharp
@@ -157,9 +128,7 @@ result = DynamicInvoke.Native.NtCreateThreadEx(ref threadHandle, Win32.WinNT.ACC
 // The "threadHandle" variable will now be updated with a pointer to the handle for the new thread. 
 ```
 
-#### "Dynamically".
-
-You may also use these delegates to invoke unmanaged functions without a managed wrapper. 
+You can, of course, manually use the Delegates in the DInvoke library without the use of our helper functions.
 
 ```csharp
  //Get a pointer to the NtCreateThreadEx function.
@@ -170,12 +139,9 @@ DELEGATES.NtCreateThreadEx createThread = (NATIVE_DELEGATES.NtCreateThreadEx)Mar
    pFunction, typeof(NATIVE_DELEGATES.NtCreateThreadEx));
 
 //Invoke NtCreateThreadEx using the delegate
-createThread(ref threadHandle, Execution.Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Execution.Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
-        procHandle, startAddress, IntPtr.Zero, Execution.Win32.NtDll.NT_CREATION_FLAGS.HIDE_FROM_DEBUGGER, 0, 0, 0, IntPtr.Zero);
+createThread(ref threadHandle, Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Win32.WinNT.ACCESS_MASK.STANDARD_RIGHTS_ALL, IntPtr.Zero,
+                    process.Handle, baseAddr, IntPtr.Zero, suspended, 0, 0, 0, IntPtr.Zero);
 ```
-
-If you wish to use your 
-
 ## Why?
 
 DInvoke presents several opportunities for offensive tool developers.
