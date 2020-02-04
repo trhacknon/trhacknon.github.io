@@ -3,25 +3,17 @@ layout: post
 title: Enabling Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke)
 ---
 
-*TLDR: The first (and late) post in an irregularly updated blog series on enhancing open-source tooling through contributions to SharpSploit that enable covert, all-in-memory operations. Nothing in this series will be operation-ready. I will provide you knowledge and ingredients, but you must do the work to build operational tooling upon it. First up, how to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
+*TLDR: Hw to dynamically invoke unmanaged code from memory or disk while (mostly) avoiding P/Invoke and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
 
 # Dynamic Invocation - D/Invoke
 
-On August 5th, [cobbr](https://twitter.com/cobbr_io) merged a [Pull Request](https://github.com/cobbr/SharpSploit/pull/21) of mine into SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call unmanaged code from memory (while passing parameters on the stack) without resorting to dynamically building and running shellcode.
-
-## Not Actually New
-
-I am not the first offensive tool developer to use this technique. However, since it is new to SharpSploit and I have not seen anyone discuss it before in the context of C#, I decided it was worth a post.
-
-### A Legitimate Technique
-
-Nothing about this technique is inherently malicious. If you are experienced in writing Windows applications, then you may be surprised that I even discuss this as an offensive "technique". It is the standard way of using DLLs in Windows. The only reason this is useful offensively is because it happens to circumvent a few common detection techniques. And the way that it was implement in SharpSploit also makes it easier to use unmanaged code from memory. Which, again, is not necessarily malicious but is useful for malware writers.
+Over the past few months, myself and FuzzySecurity (b33f) have quitely been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call arbitrary unmanaged code from memory (while passing parameters on the stack), allowing you to bypass API hooking 
 
 ### Delegates
 
 So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we PInvoke only two API calls: `LoadLibrary` and `GetProcAddress`. The former loads a DLL from disk into your current process. The latter gets a pointer to a function in a DLL that has been loaded into the current process. We may call that function from the pointer while passing in our parameters on the stack.
 
-Again, you may be thinking that this process is nothing new. You are correct. However, what is new is a SharpSploit API that automates this process for making arbitrary API calls with the goal of directly replacing PInvoke. By leveraging this dynamic loading API rather than the static loading API that sits behind PInvoke, you avoid directly importing suspicious API calls into your .NET Assembly. Additionally, this API lets you easily invoke unmanaged code from memory in C# (passing in parameters and receiving output) without doing some hacky workaround like self-injecting shellcode.
+By leveraging this dynamic loading API rather than the static loading API that sits behind PInvoke, you avoid directly importing suspicious API calls into your .NET Assembly. Additionally, this API lets you easily invoke unmanaged code from memory in C# (passing in parameters and receiving output) without doing some hacky workaround like self-injecting shellcode.
 
 We accomplish this through the magic of [Delegates](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/). .NET includes the Delegate API as a way of wrapping a method/function in a class. If you have ever used the Reflection API to enumerate methods in a class, the objects you were inspecting were actually a form of delegate.
 
@@ -31,7 +23,7 @@ Let's take a look at some of the code in this API:
 
 ```csharp
 
-/// <summary>
+        /// <summary>
         /// Dynamically invoke an arbitrary function from a DLL, providing its name, function prototype, and arguments.
         /// </summary>
         /// <author>The Wover (@TheRealWover)</author>
@@ -42,15 +34,22 @@ Let's take a look at some of the code in this API:
         /// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
         public static object DynamicAPIInvoke(string DLLName, string FunctionName, Type FunctionDelegateType, ref object[] Parameters)
         {
-            IntPtr hModule = Execution.Win32.Kernel32.LoadLibrary(DLLName);
+            IntPtr pFunction = GetLibraryAddress(DLLName, FunctionName);
+            return DynamicFunctionInvoke(pFunction, FunctionDelegateType, ref Parameters);
+        }
 
-            IntPtr pFunction = Execution.Win32.Kernel32.GetProcAddress(hModule, FunctionName);
-
-            Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(pFunction, FunctionDelegateType);
-
-            Object result = funcDelegate.DynamicInvoke(Parameters);
-
-            return result;
+        /// <summary>
+        /// Dynamically invokes an arbitrary function from a pointer. Useful for manually mapped modules or loading/invoking unmanaged code from memory.
+        /// </summary>
+        /// <author>The Wover (@TheRealWover)</author>
+        /// <param name="FunctionPointer">A pointer to the unmanaged function.</param>
+        /// <param name="FunctionDelegateType">Prototype for the function, represented as a Delegate object.</param>
+        /// <param name="Parameters">Arbitrary set of parameters to pass to the function. Can be modified if function uses call by reference.</param>
+        /// <returns>Object returned by the function. Must be unmarshalled by the caller.</returns>
+        public static object DynamicFunctionInvoke(IntPtr FunctionPointer, Type FunctionDelegateType, ref object[] Parameters)
+        {
+            Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(FunctionPointer, FunctionDelegateType);
+            return funcDelegate.DynamicInvoke(Parameters);
         }
 
 ```
