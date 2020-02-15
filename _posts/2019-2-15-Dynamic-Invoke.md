@@ -156,6 +156,8 @@ createThread(ref threadHandle, Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Win
                     process.Handle, baseAddr, IntPtr.Zero, suspended, 0, 0, 0, IntPtr.Zero);
 ```
 
+### Calling Modules
+
 ### Loading Code
 The section above shows how you would use Delegates and the DInvoke API. But how do you obtain the address for a function in the first place. The answer to that question really is: *however you would like*. But, to make that process easier, we have have provided a suite of tools to help you locate and call code using a variety of mechanisms.
 
@@ -171,10 +173,12 @@ Additionally, we have provided several ways to load modules from memory rather t
 * `MapModuleToMemoryAddress`: Manually maps a module that is already in memory (contained in a byte array), to a specific location in memory.
 * `OverloadModule`: Uses Module Overloading to map a module into memory backed by a decoy DLL on disk. Chooses a random decoy DLL that is not already loaded, is signed, and exists in `%WINDIR%\System32`. Threads that execute code in the module will appear to be executing code from a legitimate DLL. Can take either a byte array or the name of a file on disk.
 
+### Calling Mapped PEs.
+
 
 ## Why?
 
-DInvoke presents several opportunities for offensive tool developers.
+Delegates and DInvoke presents several opportunities for offensive tool developers.
 
 ### Avoid Suspicious Imports
 
@@ -198,15 +202,10 @@ Demonstrated in the Shellcode executor in SharpSploit.
 
 .NET APIs involved. Explain the functions and implementation in SharpSploit.
 
-## Example - NtInjector
-
-Let's walk through an example. We will build a shellcode injector that only uses API calls from `ntdll.dll`, but does not use any PInvokes from that DLL. It does not implement any new injection technique. The complete project is not available for download, but you may build a tool from it yourself as an exercise.
+## Example - Re-implementing MiniDumpWriteDump
 
 ## Room for Improvement
 
-
-## Conclusion
-
 # Conclusions
 
-Next up, how to use D/Invoke to use exported functions from memory-mapped unmanaged DLLs... entirely from memory. Completely bypasses API Hooking and enables using DLLs reflectively.
+Next up, an in-depth exploration of how to leverage SharpSploit to execute PE modules from memory, either for post-exploitation or for hook evasion. 
