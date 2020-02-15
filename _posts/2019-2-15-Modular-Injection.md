@@ -1,6 +1,6 @@
 --
 layout: post
-title: Enabling Covert Operations - 1: Modular Process Injection API
+title: Enabling Covert Operations - 2: Modular Process Injection API
 ---
 
 *TLDR: A new modular process injection API for SharpSploit that allows tool developers to easily build injectors by combining allocation and execution components. Simple to use, configurable, and easily extensible.*
