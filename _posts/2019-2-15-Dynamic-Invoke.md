@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Enabling Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke & API Hooks)
+title: Emulating Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke & API Hooks)
 ---
 
 *TLDR: How to dynamically invoke unmanaged code from memory or disk while avoiding API Hooking and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
@@ -181,6 +181,10 @@ DInvoke presents several opportunities for offensive tool developers.
 As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler, you would find that `MiniDumpWriteDump` is not referenced in its import table.
 
 ### Manual Mapping
+
+DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk. The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place.
+
+[It's still being refined, be patient with us. :-)]
 
 ### Unknown Execution Flow at Compile Time
 
