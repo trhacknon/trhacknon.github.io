@@ -3,7 +3,7 @@ layout: post
 title: Emulating Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke & API Hooks)
 ---
 
-*TLDR: How to dynamically invoke unmanaged code from memory or disk while avoiding API Hooking and suspicious imports, as well as an example that performs remote shellcode injection without Pinvoking suspicious API calls.*
+*TLDR: How to dynamically invoke unmanaged code from memory or disk while avoiding API Hooking and suspicious imports without Pinvoking suspicious API calls.*
 
 # Dynamic Invocation - D/Invoke
 
@@ -173,9 +173,6 @@ Additionally, we have provided several ways to load modules from memory rather t
 * `MapModuleToMemoryAddress`: Manually maps a module that is already in memory (contained in a byte array), to a specific location in memory.
 * `OverloadModule`: Uses Module Overloading to map a module into memory backed by a decoy DLL on disk. Chooses a random decoy DLL that is not already loaded, is signed, and exists in `%WINDIR%\System32`. Threads that execute code in the module will appear to be executing code from a legitimate DLL. Can take either a byte array or the name of a file on disk.
 
-### Calling Mapped PEs.
-
-
 ## Why?
 
 Delegates and DInvoke presents several opportunities for offensive tool developers.
@@ -186,9 +183,9 @@ As previously mentioned, you can avoid statically importing suspicious API calls
 
 ### Manual Mapping
 
-DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk. The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place.
+DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk. The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. To learn more about our manual mapping, [check out our separate blog post].
 
-[It's still being refined, be patient with us. :-)]
+A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time.
 
 ### Unknown Execution Flow at Compile Time
 
@@ -202,7 +199,168 @@ Demonstrated in the Shellcode executor in SharpSploit.
 
 .NET APIs involved. Explain the functions and implementation in SharpSploit.
 
-## Example - Re-implementing MiniDumpWriteDump
+## Example - Finding Exports
+
+The example below demonstrates. 
+
+```csharp
+
+using System;
+
+namespace SpTestcase
+{
+    class Program
+    {
+
+        static void Main(string[] args)
+        {
+            // Details
+            String testDetail = @"
+            #=================>
+            # Hello there!
+            # I find things dynamically; base
+            # addresses and function pointers.
+            #=================>
+            ";
+            Console.WriteLine(testDetail);
+
+            // Get NTDLL base form the PEB
+            Console.WriteLine("[?] Resolve Ntdll base from the PEB..");
+            IntPtr hNtdll = SharpSploit.Execution.DynamicInvoke.Generic.GetPebLdrModuleEntry("ntdll.dll");
+            Console.WriteLine("[>] Ntdll base address : " + string.Format("{0:X}", hNtdll.ToInt64()) + "\n");
+
+            // Search function by name
+            Console.WriteLine("[?] Resolve function by walking the export table in-memory..");
+            Console.WriteLine("[+] Search by name --> NtCommitComplete");
+            IntPtr pNtCommitComplete = SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress("ntdll.dll", "NtCommitComplete", true);
+            Console.WriteLine("[>] pNtCommitComplete : " + string.Format("{0:X}", pNtCommitComplete.ToInt64()) + "\n");
+
+            Console.WriteLine("[+] Search by ordinal --> 0x260 (NtSetSystemTime)");
+            IntPtr pNtSetSystemTime = SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress("ntdll.dll", 0x260, true);
+            Console.WriteLine("[>] pNtSetSystemTime : " + string.Format("{0:X}", pNtSetSystemTime.ToInt64()) + "\n");
+
+            Console.WriteLine("[+] Search by keyed hash --> 138F2374EC295F225BD918F7D8058316 (RtlAdjustPrivilege)");
+            Console.WriteLine("[>] Hash : HMACMD5(Key).ComputeHash(FunctionName)");
+            String fHash = SharpSploit.Execution.DynamicInvoke.Generic.GetAPIHash("RtlAdjustPrivilege", 0xaabb1122);
+            IntPtr pRtlAdjustPrivilege = SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress("ntdll.dll", fHash, 0xaabb1122);
+            Console.WriteLine("[>] pRtlAdjustPrivilege : " + string.Format("{0:X}", pRtlAdjustPrivilege.ToInt64()) + "\n");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+        }
+    }
+}
+
+```
+
+[4_Resolve.png]
+
+### Example - Syscall Execution
+
+```csharp
+
+using System;
+using System.Runtime.InteropServices;
+
+namespace SpTestcase
+{
+    class Program
+    {
+        [Flags]
+        public enum ProcessAccessFlags : uint
+        {
+            All = 0x001F0FFF,
+            Terminate = 0x00000001,
+            CreateThread = 0x00000002,
+            VirtualMemoryOperation = 0x00000008,
+            VirtualMemoryRead = 0x00000010,
+            VirtualMemoryWrite = 0x00000020,
+            DuplicateHandle = 0x00000040,
+            CreateProcess = 0x000000080,
+            SetQuota = 0x00000100,
+            SetInformation = 0x00000200,
+            QueryInformation = 0x00000400,
+            QueryLimitedInformation = 0x00001000,
+            Synchronize = 0x00100000
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct OBJECT_ATTRIBUTES
+        {
+            public ulong Length;
+            public IntPtr RootDirectory;
+            public IntPtr ObjectName;
+            public ulong Attributes;
+            public IntPtr SecurityDescriptor;
+            public IntPtr SecurityQualityOfService;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct CLIENT_ID
+        {
+            public IntPtr UniqueProcess;
+            public IntPtr UniqueThread;
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate UInt32 NtOpenProcess(
+            ref IntPtr hProcess,
+            ProcessAccessFlags processAccess,
+            ref OBJECT_ATTRIBUTES objAttribute,
+            ref CLIENT_ID clientid);
+
+        static void Main(string[] args)
+        {
+            // Details
+            String testDetail = @"
+            #=================>
+            # Hello there!
+            # I dynamically generate a Syscall stub
+            # for NtOpenProcess and then open a
+            # handle to a PID.
+            #=================>
+            ";
+            Console.WriteLine(testDetail);
+
+            // Read PID from args
+            Console.WriteLine("[?] PID: " + args[0]);
+
+            // Create params for Syscall
+            IntPtr hProc = IntPtr.Zero;
+            OBJECT_ATTRIBUTES oa = new OBJECT_ATTRIBUTES();
+            CLIENT_ID ci = new CLIENT_ID();
+            Int32 ProcID = 0;
+            if (!Int32.TryParse(args[0], out ProcID))
+            {
+                return;
+            }
+            ci.UniqueProcess = (IntPtr)(ProcID);
+
+            // Generate syscall stub
+            Console.WriteLine("[+] Generating NtOpenProcess syscall stub..");
+            IntPtr pSysCall = SharpSploit.Execution.DynamicInvoke.Generic.GetSyscallStub("NtOpenProcess");
+            Console.WriteLine("[>] pSysCall    : " + String.Format("{0:X}", (pSysCall).ToInt64()));
+
+            // Use delegate on pSysCall
+            NtOpenProcess fSyscallNtOpenProcess = (NtOpenProcess)Marshal.GetDelegateForFunctionPointer(pSysCall, typeof(NtOpenProcess));
+            UInt32 CallRes = fSyscallNtOpenProcess(ref hProc, ProcessAccessFlags.All, ref oa, ref ci);
+            Console.WriteLine("[?] NtStatus    : " + String.Format("{0:X}", CallRes));
+            if (CallRes == 0) // STATUS_SUCCESS
+            {
+                Console.WriteLine("[>] Proc Handle : " + String.Format("{0:X}", (hProc).ToInt64()));
+            }
+
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+        }
+    }
+}
+
+
+```
+
+[3_Syscall.png]
 
 ## Room for Improvement
 
