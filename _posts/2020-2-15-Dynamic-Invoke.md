@@ -189,11 +189,11 @@ A word of caution: manual mapping is complex and we do not garuantee that our im
 
 ### Unknown Execution Flow at Compile Time
 
-Sometimes, you may want to write a program where the flow of execution is unknown or undefined at compile time. Rathern than the program being one sequential procedure, maybe it uses plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P
+Sometimes, you may want to write a program where the flow of execution is unknown or undefined at compile time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to dynamically invoke arbitrary unamanaged APIs without specifying them at build-time.
 
 ### Shellcode Execution
 
-Demonstrated in the Shellcode executor in SharpSploit.
+A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independantly. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in on the stack or attempts to return a value.
 
 ## How?
 
