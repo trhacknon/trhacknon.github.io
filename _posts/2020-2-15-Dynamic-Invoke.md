@@ -411,6 +411,14 @@ namespace SpTestcase
 
 ## Room for Improvement
 
+DInvoke represents a powerful and flexible new framework for post-exploitation on Windows. But, there is still plenty of room for improvement. We have a list of features that we would like to add. If you have more, feel free to submit a PR or request the feature.
+
+* Provide arguments to EXEs invoked from memory
+* Fix manual mapping and syscall stub generation support for WOW64 processes
+* Option for DynamicAPIInvoke to use PEB or manual map
+* Add a function to Module Overload a module in memory and map the result into another process.
+* A generic function for hooking an unmanaged API call with a managed function (Delegate)
+
 # Conclusions
 
 Next up, an in-depth exploration of how to leverage SharpSploit to execute PE modules from memory, either for post-exploitation or for hook evasion. 
