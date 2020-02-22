@@ -86,7 +86,7 @@ public delegate UInt32 NtOpenProcess(
 
 We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we will now build a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
 
-It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
+It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke, that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
 
 The code below demonstrates how DInvoke is used for the `NtCreateThreadEx` function in `ntdll.dll`. The delegate (that sets up the function prototype) is stored in the `SharpSploit.Execution.DynamicInvoke.Native.DELEGATES` struct. The wrapper method is `SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx` that takes all of the same parameters that you would expect to use in a normal PInvoke.
 
@@ -159,7 +159,7 @@ createThread(ref threadHandle, Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Win
 ### Calling Modules
 
 ### Loading Code
-The section above shows how you would use Delegates and the DInvoke API. But how do you obtain the address for a function in the first place. The answer to that question really is: *however you would like*. But, to make that process easier, we have have provided a suite of tools to help you locate and call code using a variety of mechanisms.
+The section above shows how you would use Delegates and the DInvoke API. But how do you obtain the address for a function in the first place? The answer to that question really is: *however you would like*. But, to make that process easier, we have provided a suite of tools to help you locate and call code using a variety of mechanisms.
 
 The easiest way to locate and execute a function is to use the `DynamicAPIInvoke` function shown above in the first code example. It uses `GetLibraryAddress` to locate a function.
 
@@ -179,7 +179,7 @@ Delegates and DInvoke presents several opportunities for offensive tool develope
 
 ### Avoid Suspicious Imports
 
-As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler, you would find that `MiniDumpWriteDump` is not referenced in its import table.
+As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler (such as dnSpy), you would find that `MiniDumpWriteDump` is not referenced in its import table.
 
 ### Manual Mapping
 
@@ -194,10 +194,6 @@ Sometimes, you may want to write a program where the flow of execution is unknow
 ### Shellcode Execution
 
 A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independantly. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in on the stack or attempts to return a value.
-
-## How?
-
-.NET APIs involved. Explain the functions and implementation in SharpSploit.
 
 ## Example - Finding Exports
 
