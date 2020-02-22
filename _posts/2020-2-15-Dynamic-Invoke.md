@@ -264,10 +264,11 @@ Let's walk through the example in sequence:
 
 ### Example - Syscall Execution
 
-The following example
+The following example demonstrates how to use DInvoke to directly execute syscalls. We use `GetSyscallStub` to ~steal~borrow the machine code of syscall wrapper within `ntdll.dll` for `NtOpenProcess`. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
 ```csharp
 
+///Author: b33f (@FuzzySecurity, Ruben Boonen)
 using System;
 using System.Runtime.InteropServices;
 
