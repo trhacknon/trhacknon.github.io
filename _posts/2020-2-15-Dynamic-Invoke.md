@@ -197,10 +197,11 @@ A Delegate is effectively a wrapper for a function pointer. Shellcode is machine
 
 ## Example - Finding Exports
 
-The example below demonstrates. 
+The example below demonstrates several ways of finding and calling exports of a DLL.
 
 ```csharp
 
+///Author: b33f (@FuzzySecurity, Ruben Boonen)
 using System;
 
 namespace SpTestcase
@@ -250,9 +251,20 @@ namespace SpTestcase
 
 ```
 
+Let's walk through the example in sequence:
+
+1) Get the base address of `ntdll.dll`. It is loaded into every Windows process when it is initialized, so we know that it will already be loaded. As such, we can safely search the PEB's list of loaded modules to find a reference to it. Once we've found its base address from the PEB, we print the address.
+2) Use `GetLibraryAddress` to find an export within `ntdll.dll` by name.
+3) Use `GetLibraryAddress` to find an export within `ntdll.dll` by ordinal.
+4) Use `GetLibraryAddress` to find an export within `ntdll.dll` by keyed hash.
+
+*TODO: Extend this example to include Manual mapping and GetExportAddress*
+
 [4_Resolve.png]
 
 ### Example - Syscall Execution
+
+The following example
 
 ```csharp
 
