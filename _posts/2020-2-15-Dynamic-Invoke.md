@@ -393,7 +393,9 @@ As previously mentioned, you can avoid statically importing suspicious API calls
 
 ### Manual Mapping
 
-DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk. (Technique 332,769 for executing mimikatz) 
+DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk.
+
+[theres-always-room-for-one-more-28316601.png](Technique 332,769 for executing mimikatz)
 
 The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. To learn more about our manual mapping, [check out our separate blog post].
 
