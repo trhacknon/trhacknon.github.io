@@ -476,6 +476,10 @@ Sometimes, you may want to write a program where the flow of execution is unknow
 
 A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independantly. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in or attempts to return a value.
 
+## Integrating DInvoke into Tools
+
+You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://cobbr.io/SharpGen.html](excellent blog post) that covers how to integrate existing .NET Assemblies such as SharpSploit into your red team tools. Alternatively, if you don't want to embed SharpSploit into your tool, you can copy and paste the files composing DInvoke into your project and reference them. An example would be [https://github.com/med0x2e/NoAmci](NoAmci) by med0x2e.
+
 ## Room for Improvement
 
 DInvoke represents a powerful and flexible new framework for post-exploitation on Windows. But, there is still plenty of room for improvement. We have a list of features that we would like to add. If you have more, feel free to submit a PR or request the feature.
