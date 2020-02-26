@@ -49,3 +49,6 @@ namespace MapTest
 }
 
 ```
+
+The fact that you have the same module module twice is suspicious. When you choose to overload a random module, it picks one that is not already loaded, is validly signed, and is in System32/SysWOW64.
+[ModuleOverloading.png]
