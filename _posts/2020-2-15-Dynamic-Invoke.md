@@ -84,9 +84,9 @@ public delegate UInt32 NtOpenProcess(
 
 ### Executing Code
 
-We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we will now build a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
+We are building a second set of function prototypes in SharpSploit. There is already a PInvoke library; we are now building a DInvoke library in the `SharpSploit.Execution.DynamicInvoke` namespace. The DInvoke library provides a managed wrapper function for each unmanaged function. The wrapper helps the user by ensuring that parameters are passed in correctly and the correct type of object is returned.
 
-It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke, that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
+It is worth noting: PInvoke is MUCH more forgiving about data types than DInvoke. If the data types you specify in a PInvoke function prototype are not *quite* right, it will silently correct them for you. With DInvoke, that is not the case. You must marshal data in *exactly* the correct way, ensuring that the data structures you pass in are in the same format in memory as the unmanaged code expects. This is annoying. And is part of why we created a seperate namespace for DInvoke signatures and wrappers. If you want to understand better how to marshal data for PInvoke/DInvoke, I would recommend reading @matterpreter's [blog post on the subject](https://posts.specterops.io/offensive-p-invoke-leveraging-the-win32-api-from-managed-code-7eef4fdef16d).
 
 The code below demonstrates how DInvoke is used for the `NtCreateThreadEx` function in `ntdll.dll`. The delegate (that sets up the function prototype) is stored in the `SharpSploit.Execution.DynamicInvoke.Native.DELEGATES` struct. The wrapper method is `SharpSploit.Execution.DynamicInvoke.Native.NtCreateThreadEx` that takes all of the same parameters that you would expect to use in a normal PInvoke.
 
@@ -127,6 +127,23 @@ namespace SharpSploit.Execution.DynamicInvoke
             return retValue;
         }
 
+        public struct DELEGATES
+        {
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate Execute.Native.NTSTATUS NtCreateThreadEx(
+                out IntPtr threadHandle,
+                Execute.Win32.WinNT.ACCESS_MASK desiredAccess,
+                IntPtr objectAttributes,
+                IntPtr processHandle,
+                IntPtr startAddress,
+                IntPtr parameter,
+                bool createSuspended,
+                int stackZeroBits,
+                int sizeOfStack,
+                int maximumStackSize,
+                IntPtr attributeList);
+        }
+
 ```
 
 You may use this wrapper to dynamically call `NtCreateThreadEx` as if you were calling any other managed function: 
@@ -156,7 +173,7 @@ createThread(ref threadHandle, Win32.WinNT.ACCESS_MASK.SPECIFIC_RIGHTS_ALL | Win
                     process.Handle, baseAddr, IntPtr.Zero, suspended, 0, 0, 0, IntPtr.Zero);
 ```
 
-### Calling Modules
+## Calling Modules
 
 ### Loading Code
 The section above shows how you would use Delegates and the DInvoke API. But how do you obtain the address for a function in the first place? The answer to that question really is: *however you would like*. But, to make that process easier, we have provided a suite of tools to help you locate and call code using a variety of mechanisms.
@@ -165,7 +182,7 @@ The easiest way to locate and execute a function is to use the `DynamicAPIInvoke
 
 * `GetLibraryAddress`: First, checks if the module is already loaded using `GetLoadedModuleAddress`. If not, it loads the module into the process using `LoadModuleFromDisk`, which uses the NT API call `LdrLoadDll` to load the DLL. Either way, it then uses `GetExportAddress` to find the function in the module. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
 * `GetLoadedModuleAddress`: Uses `Process.GetCurrentProcess().Modules` to check if a module on disk is already loaded into the current process. If so, returns the address of that module.
-* `LoadModuleFromDisk`: This will generate an Image Load ("modload") event for the process, which could be used as part of a detection signal.
+* `LoadModuleFromDisk`: Loads a module from disk using the NT API call `LdrLoadDll`. This will generate an Image Load ("modload") event for the process, which could be used as part of a detection signal.
 * `GetExportAddress`: Starting from the base address of a module in memory, parses the PE headers of the module to locate a particular function. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
 
 Additionally, we have provided several ways to load modules from memory rather than from disk.
@@ -173,29 +190,7 @@ Additionally, we have provided several ways to load modules from memory rather t
 * `MapModuleToMemoryAddress`: Manually maps a module that is already in memory (contained in a byte array), to a specific location in memory.
 * `OverloadModule`: Uses Module Overloading to map a module into memory backed by a decoy DLL on disk. Chooses a random decoy DLL that is not already loaded, is signed, and exists in `%WINDIR%\System32`. Threads that execute code in the module will appear to be executing code from a legitimate DLL. Can take either a byte array or the name of a file on disk.
 
-## Why?
-
-Delegates and DInvoke presents several opportunities for offensive tool developers.
-
-### Avoid Suspicious Imports
-
-As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler (such as dnSpy), you would find that `MiniDumpWriteDump` is not referenced in its import table.
-
-### Manual Mapping
-
-DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk. The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. To learn more about our manual mapping, [check out our separate blog post].
-
-A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time.
-
-### Unknown Execution Flow at Compile Time
-
-Sometimes, you may want to write a program where the flow of execution is unknown or undefined at compile time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to dynamically invoke arbitrary unamanaged APIs without specifying them at build-time.
-
-### Shellcode Execution
-
-A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independantly. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in on the stack or attempts to return a value.
-
-## Example - Finding Exports
+### Example - Finding Exports
 
 The example below demonstrates several ways of finding and calling exports of a DLL.
 
@@ -262,47 +257,25 @@ Let's walk through the example in sequence:
 
 [4_Resolve.png]
 
-### Example - Calling Exports from Memory
+## Why DInvoke?
 
-```csharp
+Delegates and DInvoke presents several opportunities for offensive tool developers.
 
-namespace MapTest
-{
-    class Program
-    {
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate int MessageBox(IntPtr hWnd, String text, String caption, int options);
+### Bypass Hooking
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate int TestFunc();
+DInvoke provides you with many options for how to execute unmanaged code. 
 
-        static void Main(string[] args)
-        {
+* Want to bypass IAT Hooking for a suspicious function? No problem! Just use `GetLibraryAddress` to find the function by parsing the module's EAT. 
+* Want to avoid calling `LoadLibrary` and `GetProcAddress`? Use `GetPebLdrModuleEntry` to find the module by searching the PEB.
+* Want to avoid inline hooking? Manually map a fresh copy of the module and use it without any userland hooks in place.
+* Want to bypass all userland hooking without leaving a PE suspiciously floating in memory? Go native and use a syscall!
 
-            // (1) Mimikatz x64
-            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Mimikatz\x64\mimikatz.exe");
-            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedPEModule(ManMap.PEINFO, ManMap.ModuleBase);
+These are just some examples of how you could bypass hooks. The point is: by providing you with powerful and flexible primitives for determining how code is executed, all operational choices are left up to you. Choose wisely. ;-)
 
-            // (2) Call test DLL by DLLMain
-            //SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Dll-Template\Dll-Template\x64\Release\Dll-Template.dll");
-            //SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModule(ManMap.PEINFO, ManMap.ModuleBase);
-
-            // (3) Call test DLL by export (Also calls DllMain as part of init)
-            //SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Dll-Template\Dll-Template\x64\Release\Dll-Template.dll");
-            //object[] FunctionArgs = { };
-            //SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMap.PEINFO, ManMap.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
-        }
-    }
-}
-            
-
-```
-
-*TODO: Add an image and show downloading the DLL from memory over HTTP into a byte array.*
 
 ### Example - Syscall Execution
 
-The following example demonstrates how to use DInvoke to directly execute syscalls. We use `GetSyscallStub` to ~steal~borrow the machine code of syscall wrapper within `ntdll.dll` for `NtOpenProcess`. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
+Speaking of... lets show how to directly execute syscalls. We use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
 ```csharp
 
@@ -409,14 +382,71 @@ namespace SpTestcase
 
 [3_Syscall.png]
 
+### Avoid Suspicious Imports
+
+As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler (such as dnSpy), you would find that `MiniDumpWriteDump` is not referenced in its import table.
+
+### Manual Mapping
+
+DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk. (Technique 332,769 for executing mimikatz) 
+
+The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. To learn more about our manual mapping, [check out our separate blog post].
+
+A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time.
+
+### Example - Calling Exports from Memory
+
+```csharp
+
+namespace MapTest
+{
+    class Program
+    {
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int MessageBox(IntPtr hWnd, String text, String caption, int options);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int TestFunc();
+
+        static void Main(string[] args)
+        {
+
+            // (1) Mimikatz x64
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Mimikatz\x64\mimikatz.exe");
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedPEModule(ManMap.PEINFO, ManMap.ModuleBase);
+
+            // (2) Call test DLL by DLLMain
+            //SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Dll-Template\Dll-Template\x64\Release\Dll-Template.dll");
+            //SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModule(ManMap.PEINFO, ManMap.ModuleBase);
+
+            // (3) Call test DLL by export (Also calls DllMain as part of init)
+            //SharpSploit.Execution.PE.PE_MANUAL_MAP ManMap = SharpSploit.Execution.DynamicInvoke.Generic.MapModuleToMemory(@"C:\Users\b33f\Tools\Dll-Template\Dll-Template\x64\Release\Dll-Template.dll");
+            //object[] FunctionArgs = { };
+            //SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMap.PEINFO, ManMap.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
+        }
+    }
+}
+            
+
+```
+
+*TODO: Add an image and show downloading the DLL from memory over HTTP into a byte array.*
+
+### Unknown Execution Flow at Compile Time
+
+Sometimes, you may want to write a program where the flow of execution is unknown or undefined at compile time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to dynamically invoke arbitrary unamanaged APIs without specifying them at build-time.
+
+### Shellcode Execution
+
+A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independantly. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in or attempts to return a value.
+
 ## Room for Improvement
 
 DInvoke represents a powerful and flexible new framework for post-exploitation on Windows. But, there is still plenty of room for improvement. We have a list of features that we would like to add. If you have more, feel free to submit a PR or request the feature.
 
 * Provide arguments to EXEs invoked from memory (more complicated than it sounds)
-* Fix manual mapping and syscall stub generation support for WOW64 processes
-* Parameter for DynamicAPIInvoke that lets the user specify to use PEB or manual map to locate the module
-* Add a function to Module Overload a module in memory and map the result into another process.
+* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. `¯\_(ツ)_/¯`)
+* Add a function to Module Overload a module in memory and map the result into a different process.
 * A generic function for hooking an unmanaged API call with a managed function (Delegate).
 
 # Conclusions
