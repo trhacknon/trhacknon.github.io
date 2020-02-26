@@ -398,3 +398,9 @@ public class RemoteThreadCreate : ExecutionTechnique
 }
 
 ```
+
+### Demo - Covenant
+
+Use Covenant's SharpShell to build a custom injector on the fly.
+
+Record video.
