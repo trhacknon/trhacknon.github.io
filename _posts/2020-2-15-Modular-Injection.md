@@ -11,6 +11,8 @@ title: Enabling Covert Operations - 2: Modular Process Injection API
 
 ## Primitives
 
+Was an excellent Black Hat talk about this (Pinjectra): https://www.blackhat.com/us-19/briefings/schedule/#process-injection-techniques---gotta-catch-them-all-16010
+
 ### Allocation
 
 ### Write
