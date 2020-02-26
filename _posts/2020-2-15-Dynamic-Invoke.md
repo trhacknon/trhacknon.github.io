@@ -216,13 +216,13 @@ namespace SpTestcase
             ";
             Console.WriteLine(testDetail);
 
-            // Get NTDLL base form the PEB
+            // Get NTDLL base from the PEB
             Console.WriteLine("[?] Resolve Ntdll base from the PEB..");
             IntPtr hNtdll = SharpSploit.Execution.DynamicInvoke.Generic.GetPebLdrModuleEntry("ntdll.dll");
             Console.WriteLine("[>] Ntdll base address : " + string.Format("{0:X}", hNtdll.ToInt64()) + "\n");
 
             // Search function by name
-            Console.WriteLine("[?] Resolve function by walking the export table in-memory..");
+            Console.WriteLine("[?] Specifying the name of a DLL (\"ntdll.dll\"), resolve a function by walking the export table in-memory..");
             Console.WriteLine("[+] Search by name --> NtCommitComplete");
             IntPtr pNtCommitComplete = SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress("ntdll.dll", "NtCommitComplete", true);
             Console.WriteLine("[>] pNtCommitComplete : " + string.Format("{0:X}", pNtCommitComplete.ToInt64()) + "\n");
@@ -236,6 +236,12 @@ namespace SpTestcase
             String fHash = SharpSploit.Execution.DynamicInvoke.Generic.GetAPIHash("RtlAdjustPrivilege", 0xaabb1122);
             IntPtr pRtlAdjustPrivilege = SharpSploit.Execution.DynamicInvoke.Generic.GetLibraryAddress("ntdll.dll", fHash, 0xaabb1122);
             Console.WriteLine("[>] pRtlAdjustPrivilege : " + string.Format("{0:X}", pRtlAdjustPrivilege.ToInt64()) + "\n");
+
+            // Search for function from base address of DLL
+            Console.WriteLine("[?] Specifying the base address of DLL in memory ({0:X}), resolve function by walking its export table...", hNtdll.ToInt64());
+            Console.WriteLine("[+] Search by name --> NtCommitComplete");
+            IntPtr pNtCommitComplete2 = SharpSploit.Execution.DynamicInvoke.Generic.GetExportAddress(hNtdll, "NtCommitComplete");
+            Console.WriteLine("[>] pNtCommitComplete : " + string.Format("{0:X}", pNtCommitComplete2.ToInt64()) + "\n");
 
             // Pause execution
             Console.WriteLine("[*] Pausing execution..");
@@ -252,8 +258,7 @@ Let's walk through the example in sequence:
 2) Use `GetLibraryAddress` to find an export within `ntdll.dll` by name.
 3) Use `GetLibraryAddress` to find an export within `ntdll.dll` by ordinal.
 4) Use `GetLibraryAddress` to find an export within `ntdll.dll` by keyed hash.
-
-*TODO: Extend this example to include Manual mapping and GetExportAddress*
+5) Starting from the base address of `ntdll.dll` that we found earlier, yse `GetExportAddress` to find an export within the module in memory by name.
 
 [4_Resolve.png]
 
