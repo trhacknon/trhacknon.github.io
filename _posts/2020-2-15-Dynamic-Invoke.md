@@ -275,7 +275,7 @@ DInvoke was built to allow you (the offensive tool developer) choice in not just
 
 DInvoke provides you with many options for how to execute unmanaged code. 
 
-* Want to bypass IAT Hooking for a suspicious function? No problem! Just use `GetLibraryAddress` to find the function by parsing the module's EAT. 
+* Want to bypass IAT Hooking for a suspicious function? No problem! Just use `GetLibraryAddress` or `GetExportAdress` to find the function by parsing the module's EAT. 
 * Want to avoid calling `LoadLibrary` and `GetProcAddress`? Use `GetPebLdrModuleEntry` to find the module by searching the PEB.
 * Want to avoid inline hooking? Manually map a fresh copy of the module and use it without any userland hooks in place.
 * Want to bypass all userland hooking without leaving a PE suspiciously floating in memory? Go native and use a syscall!
