@@ -496,7 +496,7 @@ You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://
 DInvoke represents a powerful and flexible new framework for post-exploitation on Windows. But, there is still plenty of room for improvement. We have a list of features that we would like to add. If you have more, feel free to submit a PR or request the feature.
 
 * Provide arguments to EXEs invoked from memory (more complicated than it sounds)
-* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. Something seems to go wrong during the WOW64 transition. If you know how to fix this please let us know :-D )
+* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. Something seems to go wrong during the WOW64 transition. If you know how to fix this please let us know :-D Otherwise, we will fix it when we have the time.)
 * Add a function to Module Overload a module in memory and map the result into a different process.
 * A generic function for hooking an unmanaged API call with a managed function (Delegate).
 
@@ -504,4 +504,4 @@ DInvoke represents a powerful and flexible new framework for post-exploitation o
 
 DInvoke is a framework for dynamically executing unmanaged code from managed code without using Pinvoke. It is our hope that it will provide you with the flexibility necessary to choose not just what your tools do, but how they do it. Whether you can use it to avoid detection is up to you.
 
-Next up, an in-depth exploration of how to leverage SharpSploit to execute PE modules from memory, either for post-exploitation or for hook evasion. 
+Next up, an in-depth exploration of how to leverage SharpSploit to execute PE modules from memory, either for post-exploitation or for hook evasion. b33f and I are currently preparing to speak at TroopersCon, so the next blog post will come out after the conference.
