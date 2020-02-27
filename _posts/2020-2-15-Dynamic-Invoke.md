@@ -7,7 +7,12 @@ title: Emulating Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke & A
 
 # Dynamic Invocation - D/Invoke
 
-Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have quitely been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. This avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Additionally, it lets you call arbitrary unmanaged code from memory (while passing parameters on the stack), allowing you to bypass API hooking in a variety of ways. Overall. DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code. 
+Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have quitely been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. You may call arbitrary unmanaged code from memory (while passing parameters), allowing you to bypass API hooking in a variety of ways and execute post-exploitation payloads reflectively. This also avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Overall, DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code.
+
+This blog post is the first in a three-part series detailing the features we have added to SharpSploit. We also presented on these subjects at Blue Hat IL 2020.
+
+* Blue Hat video: https://youtu.be/FuxpMXTgV9s
+* Presentation slides and materials: https://github.com/FuzzySecurity/BlueHatIL-2020
 
 ## Delegates
 
@@ -264,7 +269,7 @@ Let's walk through the example in sequence:
 
 ## Why DInvoke?
 
-Delegates and DInvoke presents several opportunities for offensive tool developers.
+DInvoke was built to allow you (the offensive tool developer) choice in not just *what* code you execute but *how* you execute it.
 
 ### Bypass Hooking
 
@@ -395,9 +400,13 @@ As previously mentioned, you can avoid statically importing suspicious API calls
 
 DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk.
 
-[theres-always-room-for-one-more-28316601.png](Technique 332,769 for executing mimikatz)
+[theres-always-room-for-one-more-28316601.png](Technique #332,769 for executing mimikatz)
 
-The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. To learn more about our manual mapping, [check out our separate blog post].
+The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why malware often manually maps `ntdll.dll`. They use a fresh copy to bypass any hooks placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. 
+
+In addition to normal manual mapping, we also added support for Module Overloading. Module Overloading allows you to store a payload in memory (in a byte array) into memory backed by a legitimate file on disk. That way, when you execute code from it, the code will appear to execute from a legitimate, validly signed DLL on disk. 
+
+To learn more about our manual mapping and Module Overloading implementations, check out the second post in this series (will add link once it is posted).
 
 A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time.
 
@@ -472,7 +481,7 @@ namespace MapTest
 
 ### Unknown Execution Flow at Compile Time
 
-Sometimes, you may want to write a program where the flow of execution is unknown or undefined at compile time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to dynamically invoke arbitrary unamanaged APIs without specifying them at build-time.
+Sometimes, you may want to write a program where the flow of execution is unknown or undefined at build time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to make unwise life choices by dynamically invoking arbitrary unamanaged modules without specifying them at build-time.
 
 ### Shellcode Execution
 
@@ -487,7 +496,7 @@ You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://
 DInvoke represents a powerful and flexible new framework for post-exploitation on Windows. But, there is still plenty of room for improvement. We have a list of features that we would like to add. If you have more, feel free to submit a PR or request the feature.
 
 * Provide arguments to EXEs invoked from memory (more complicated than it sounds)
-* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. `¯\_(ツ)_/¯`)
+* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. Something seems to go wrong during the WOW64 transition. If you know how to fix this please let us know :-D )
 * Add a function to Module Overload a module in memory and map the result into a different process.
 * A generic function for hooking an unmanaged API call with a managed function (Delegate).
 
