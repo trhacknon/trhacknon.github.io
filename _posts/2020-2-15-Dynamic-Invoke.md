@@ -493,38 +493,58 @@ A Delegate is effectively a wrapper for a function pointer. Shellcode is machine
 
 You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://cobbr.io/SharpGen.html](excellent blog post) that covers how to integrate existing .NET Assemblies such as SharpSploit into your red team tools. Alternatively, if you don't want to embed SharpSploit into your tool, you can copy and paste the files composing DInvoke into your project and reference them. An example would be [https://github.com/med0x2e/NoAmci](NoAmci) by med0x2e.
 
-## OpSec
-* Use DInvoke instead of PInvoke.
-* Avoid module load events.
-* When done with manually mapped modules, free them from memory to avoid memory scanners.
-
 ## Detection
 
-As just demonstrated, DInvoke provides many operational security advantages to offensive tool developers. Fortunately for defenders, though, it is not all sunshine, lollipops and rainbows for the attackers.
+DInvoke provides many operational security advantages to offensive tool developers. Fortunately for defenders, though, it is not all sunshine, lollipops and rainbows for the attackers. Nothing is undetectable. Like a ripple in a pond, every action you take on-target produces anomalies even if they are ephemeral. DInvoke is no exception.
 
 The examples provided are available in the GitHub repo for our Blue Hat IL talk: https://github.com/FuzzySecurity/BlueHatIL-2020/tree/master/Detection
 
 ### Correlating Module Load Events
 
-Unless you manually map the modules that you wish to execute, making API calls into DLLs will generate Image Load ("modload") events. 
+Unless you manually map the modules that you wish to execute, loading DLLs will generate Image Load ("modload") events. These events can be captured using SysMon, ETW, WMI, and many other systems and can be valuable components of detection logic. If you (or more likely your vendor) have insight into what modules are commonly loaded by processes, then you can recognize when a process loads a module that it has never loaded before. Since anomalous module loads can be indicators of code injection, many vendors watch for them to find in-memory malware. DInvoke is no exception. Using `DynamicAPIInvoke` can generate these anomalous module load events when the DLL referenced has not yet been loaded into the current process. 
 
-While Module Overloading is covert in that it hides a module in memory backed by a legitimate file on-disk, it does generate a modload event for the decoy file that backs the memory. Since that file is randomly chosen from DLLs in `%WINDIR%\System32`, it will probably not 
+While Module Overloading is covert in that it hides a module in memory backed by a legitimate file on-disk, it does generate a modload event for the decoy file that backs the memory. Since that file is randomly chosen (and will not be one already loaded), it will probably not be a module that is *normally* loaded by the process and is therefore anomalous.
+
+Incidentally, this sort of detection can also be used to reliably detect injection of .NET Assemblies into processes that do not normally load the CLR such as unmanaged executables. To demonstrate, see what modules are loaded by `notepad.exe` before injecting a .NET Assembly (such as something using SharpSploit) into it:
+
+[ModuleLoadCorrelation_pre.png]
+
+Now, after injecting a .NET Assembly into the process, you can see that various .NET runtime DLLs were loaded into it.
+
+[ModuleLoadCorrelation_post.png]
 
 ### Memory Scanning
 
-While Manual Mapping has the benefit of not generating modload events (and bypassing API hooks), it has the disadvantage to producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal.
-
-hasherezade's pe-sieve: https://github.com/hasherezade/pe-sieve 
+While Manual Mapping has the benefit of not generating modload events (and bypassing API hooks), it has the disadvantage of producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal. Since memory scanning is a complex topic that is too nuanced to discuss here, I will simply refer you to an open source memory scanner that successfully detects SharpSploit's manual mapping and Module Overloading. hasherezade's pe-sieve project (https://github.com/hasherezade/pe-sieve) can detect modules that have been mapped into dynamically allocated memory or used to replace modules loaded into file-backed memory and dump them from the process.
 
 [screenshot that I sent to hasherezade]
 
+Memory scanning and evading it is a constant cat-and-mouse game. So, with some creativity, you could probably evade some of hasherezade's techniques until she finds your malware and dissects it to add to her collection. :-) But I will leave that as an exercise to the reader. ;-)
+
 ### ETW
 
+Event Tracing for Windows is a powerful framework for monitoring Windows. Several event providers are available in Windows by default. They can be used by vendors to monitor for suspicious events. Or, they can be leveraged through a tool such as [SilkETW](https://www.fireeye.com/blog/threat-research/2019/03/silketw-because-free-telemetry-is-free.html) to log events to [Windows Event Log](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-1-installing-silketw-6eb74815e4a0) or a [SIEM](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-2-shipping-etw-events-to-helk-16837116d2f5). One of the default providers allows for introspection of the .NET Common Language Runtime. It can be used to watch for Assembly loads (including from memory!), suspicious IL signatures, and more. In our GitHub repo, we provide an [example](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit_Yara.txt) SilkETW [config](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit_Yara.json) and Yara [signatures](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit.yar) that demonstrate leveraging the .NET Runtime ETW provider to detect usage of DInvoke.
+
+[SilkETW_SharpSploit_Yara.png]
 
 
-### Application Introspection (Hooking) 
+### Application Introspection (Hooking)
 
-While DInvoke can be used to avoid userland hooking, it is incapable of evading kernel-level hooking of syscalls. 
+While DInvoke does provide mechanisms for bypassing userland API hooking, it is up to the developer to use them effectively. As such, userland API hooking may still be effective against it. To demonstrate this, b33f wrote an example Frida [script](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/Fermion_MapModuleToMemory.js) that hooks `NtWriteVirtualMemory` and `NtCreateThreadEx`. When the former is called, the script checks to see if the data being written is in the format of a PE file. If so, it keeps track of the block of memory. Afterwards, whenever the latter is called, the script checks to see whether the new thread has a start address within the dynamically mapped PE file. If so, it triggers an alert.
+
+[Fermion_SharpSploit_MapModuleToMemory.png]
+
+It is also worth noting that DInvoke is entirely incapable of evading kernel-level hooking of syscalls. The same is true for all malware that runs from user-land. As such, any drivers (such as an EDR component) that hook syscalls will be unaffected.
+
+## Operational Security
+DInvoke is, fundamentally, a defense evasion toolbox for .NET offensive tool developers. Whether you can use those tools effectively is up to you. Generally, follow these rules of thumb:
+
+* Use DInvoke instead of PInvoke.
+* Choose to avoid API hooks.
+* Avoid module load events.
+* Prefer to hide code in locations it would normally exist, such as file-backed Sections.
+* When done with manually mapped modules, free them from memory to avoid memory scanners.
+* No design decision will ensure that your tools are undetectable. Build a threat model for your offensive tools. What detection mechanisms are they likely to face? Consider what the operational tradeoffs are of each decision you have made for how you load and execute code on-target. Base your design decisions on how those tradeoffs balance in favor of your tools not getting caught.
 
 ## Room for Improvement
 
