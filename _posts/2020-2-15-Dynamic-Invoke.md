@@ -189,6 +189,8 @@ The easiest way to locate and execute a function is to use the `DynamicAPIInvoke
 * `GetLoadedModuleAddress`: Uses `Process.GetCurrentProcess().Modules` to check if a module on disk is already loaded into the current process. If so, returns the address of that module.
 * `LoadModuleFromDisk`: Loads a module from disk using the NT API call `LdrLoadDll`. This will generate an Image Load ("modload") event for the process, which could be used as part of a detection signal.
 * `GetExportAddress`: Starting from the base address of a module in memory, parses the PE headers of the module to locate a particular function. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
+* `GetPebLdrModuleEntry`: Searches for the base address of a currently loaded module by searching for a reference to it in the PEB.
+* `GetSyscallStub`: Maps a fresh copy of `ntdll.dll` and copies the bytes of a syscall wrapper from the fresh copy. This can be used to directly execute syscalls
 
 Additionally, we have provided several ways to load modules from memory rather than from disk.
 * `MapModuleToMemory`: Manually maps a module into dynamically allocated memory, properly aligning the PE sections, correcting memory permissions, and fixing the Import Address Table. Can take either a byte array or the name of a file on disk.
