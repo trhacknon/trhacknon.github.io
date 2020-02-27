@@ -287,6 +287,8 @@ These are just some examples of how you could bypass hooks. The point is: by pro
 
 Speaking of... lets show how to directly execute syscalls. We use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
+Note: Syscall execution does not currently work in WOW64 processes. Please see the note at the bottom of this post for details.
+
 ```csharp
 
 ///Author: b33f (@FuzzySecurity, Ruben Boonen)
@@ -408,7 +410,7 @@ In addition to normal manual mapping, we also added support for Module Overloadi
 
 To learn more about our manual mapping and Module Overloading implementations, check out the second post in this series (will add link once it is posted).
 
-A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping does not currently work in WOW64 processes. See the note at the end of this post.
+A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping and does not currently work in WOW64 processes. See the note at the end of this post.
 
 ### Example - Calling Exports from Memory
 
@@ -490,6 +492,39 @@ A Delegate is effectively a wrapper for a function pointer. Shellcode is machine
 ## Integrating DInvoke into Tools
 
 You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://cobbr.io/SharpGen.html](excellent blog post) that covers how to integrate existing .NET Assemblies such as SharpSploit into your red team tools. Alternatively, if you don't want to embed SharpSploit into your tool, you can copy and paste the files composing DInvoke into your project and reference them. An example would be [https://github.com/med0x2e/NoAmci](NoAmci) by med0x2e.
+
+## OpSec
+* Use DInvoke instead of PInvoke.
+* Avoid module load events.
+* When done with manually mapped modules, free them from memory to avoid memory scanners.
+
+## Detection
+
+As just demonstrated, DInvoke provides many operational security advantages to offensive tool developers. Fortunately for defenders, though, it is not all sunshine, lollipops and rainbows for the attackers.
+
+The examples provided are available in the GitHub repo for our Blue Hat IL talk: https://github.com/FuzzySecurity/BlueHatIL-2020/tree/master/Detection
+
+### Correlating Module Load Events
+
+Unless you manually map the modules that you wish to execute, making API calls into DLLs will generate Image Load ("modload") events. 
+
+While Module Overloading is covert in that it hides a module in memory backed by a legitimate file on-disk, it does generate a modload event for the decoy file that backs the memory. Since that file is randomly chosen from DLLs in `%WINDIR%\System32`, it will probably not 
+
+### Memory Scanning
+
+While Manual Mapping has the benefit of not generating modload events (and bypassing API hooks), it has the disadvantage to producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal.
+
+hasherezade's pe-sieve: https://github.com/hasherezade/pe-sieve 
+
+[screenshot that I sent to hasherezade]
+
+### ETW
+
+
+
+### Application Introspection (Hooking) 
+
+While DInvoke can be used to avoid userland hooking, it is incapable of evading kernel-level hooking of syscalls. 
 
 ## Room for Improvement
 
