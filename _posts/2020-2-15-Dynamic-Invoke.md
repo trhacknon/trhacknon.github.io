@@ -496,7 +496,7 @@ You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://
 DInvoke represents a powerful and flexible new framework for post-exploitation on Windows. But, there is still plenty of room for improvement. We have a list of features that we would like to add. If you have more, feel free to submit a PR or request the feature.
 
 * Provide arguments to EXEs invoked from memory (more complicated than it sounds)
-* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. Something seems to go wrong during the WOW64 transition. If you know how to fix this please let us know :-D Otherwise, we will fix it when we have the time.)
+* Fix manual mapping and syscall stub generation support for WOW64 processes. (It's slightly broken right now and we're not sure why. It works in 32-bit processes on 32-bit machines, and 64-bit processes on 64-bit machines. But it doesn't work in WOW64 processes on 64-bit machines. Something seems to go wrong during the WOW64 transition for syscalls. If you know how to fix this please let us know :-D Otherwise, we will fix it when we have the time.)
 * Add a function to Module Overload a module in memory and map the result into a different process.
 * A generic function for hooking an unmanaged API call with a managed function (Delegate).
 
