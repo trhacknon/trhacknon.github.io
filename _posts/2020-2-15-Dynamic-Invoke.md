@@ -519,7 +519,7 @@ Now, after injecting a .NET Assembly into the process, you can see that various 
 
 ### Memory Scanning
 
-While Manual Mapping has the benefit of not generating modload events (and bypassing API hooks), it has the disadvantage of producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal. Since memory scanning is a complex topic that is too nuanced to discuss here, I will simply refer you to an open source memory scanner that successfully detects SharpSploit's manual mapping and Module Overloading. hasherezade's pe-sieve project (https://github.com/hasherezade/pe-sieve) can detect modules that have been mapped into dynamically allocated memory or used to replace modules loaded into file-backed memory and dump them from the process.
+While Manual Mapping has the benefit of bypassing API hooks and not generating modload events, it has the disadvantage of producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal. Since memory scanning is a complex topic that is too nuanced to discuss here, I will simply refer you to an open source memory scanner that successfully detects SharpSploit's manual mapping and Module Overloading. hasherezade's pe-sieve project (https://github.com/hasherezade/pe-sieve) can detect modules that have been mapped into dynamically allocated memory or used to replace modules loaded into file-backed memory and dump them from the process.
 
 [screenshot that I sent to hasherezade]
 
