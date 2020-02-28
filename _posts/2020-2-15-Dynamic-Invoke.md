@@ -14,6 +14,8 @@ This blog post is the first in a three-part series detailing the features we hav
 * Blue Hat video: https://youtu.be/FuxpMXTgV9s
 * Presentation slides and materials: https://github.com/FuzzySecurity/BlueHatIL-2020
 
+It is important to note that nothing in this post or series represents a new fundamental technique. Everything has either been observed to be used by real threat actors in the wild before, discussed publically by offensive security researchers, or is a variant of an already public technique. And there is no exploit here. Just abuse of features and solid operational tradecraft. 
+
 ## Delegates
 
 So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we use any way we would like to load a DLL into memory. Then, we get a pointer to a function in that DLL. We may call that function from the pointer while passing in our parameters.
