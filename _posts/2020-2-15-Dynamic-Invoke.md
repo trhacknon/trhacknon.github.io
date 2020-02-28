@@ -487,7 +487,7 @@ namespace MapTest
 
 ### Unknown Execution Flow at Compile Time
 
-Sometimes, you may want to write a program where the flow of execution is unknown or undefined at build time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to make unwise life choices by dynamically invoking arbitrary unamanaged modules without specifying them at build-time.
+Sometimes, you may want to write a program where the flow of execution is unknown or undefined at build time. Rather than the program being one sequential procedure, maybe it uses dynamically loaded plugins, is self-modifying, or provides an interface to the user that allows them to specify how execution should proceed. All of these are cases that would typically be considered dangerous and... also unwise life choices. But, if you write malware, then that description probably applies to the rest of your life as well. :-P DInvoke allows you to make unwise life choices by dynamically invoking arbitrary unmanaged modules without specifying them at build-time.
 
 ### Shellcode Execution
 
