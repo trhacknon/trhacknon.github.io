@@ -499,9 +499,9 @@ You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://
 
 ## Detection
 
-DInvoke provides many operational security advantages to offensive tool developers. Fortunately for defenders, though, it is not all sunshine, lollipops and rainbows for the attackers. Nothing is undetectable. Like a ripple in a pond, every action you take on-target produces anomalies even if they are ephemeral. DInvoke is no exception.
+DInvoke provides many operational security advantages to offensive tool developers. Fortunately for defenders there are measures you can take to detect the DInvoke or the techniques that it enables, though it is not all sunshine, lollipops and rainbows. Nothing is undetectable. Like a ripple in a pond, every action you take on-target produces anomalies even if they are ephemeral. DInvoke is no exception.
 
-The examples provided are available in the GitHub repo for our Blue Hat IL talk: https://github.com/FuzzySecurity/BlueHatIL-2020/tree/master/Detection
+The examples provided below are available in the GitHub repo for our Blue Hat IL talk: https://github.com/FuzzySecurity/BlueHatIL-2020/tree/master/Detection
 
 ### Correlating Module Load Events
 
