@@ -267,7 +267,7 @@ Let's walk through the example in sequence:
 2) Use `GetLibraryAddress` to find an export within `ntdll.dll` by name.
 3) Use `GetLibraryAddress` to find an export within `ntdll.dll` by ordinal.
 4) Use `GetLibraryAddress` to find an export within `ntdll.dll` by keyed hash.
-5) Starting from the base address of `ntdll.dll` that we found earlier, yse `GetExportAddress` to find an export within the module in memory by name.
+5) Starting from the base address of `ntdll.dll` that we found earlier, use `GetExportAddress` to find an export within the module in memory by name.
 
 [4_Resolve.png]
 
