@@ -414,7 +414,7 @@ In addition to normal manual mapping, we also added support for Module Overloadi
 
 To learn more about our manual mapping and Module Overloading implementations, check out the second post in this series (will add link once it is posted).
 
-A word of caution: manual mapping is complex and we do not garuantee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping and does not currently work in WOW64 processes. See the note at the end of this post.
+A word of caution: manual mapping is complex and we do not garauntee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping and syscall stub generation do not currently work in WOW64 processes. See the note at the end of this post.
 
 ### Example - Calling Exports from Memory
 
