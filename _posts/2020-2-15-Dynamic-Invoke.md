@@ -418,7 +418,7 @@ A word of caution: manual mapping is complex and we do not garauntee that our im
 
 ### Example - Calling Exports from Memory
 
-We go into more detail on manual mapping in our separate blog post, but here is just a sample of what you could do with the capabaility.
+We go into more detail on manual mapping in our separate blog post (available later), but here is just a sample of what you could do with the capabaility.
 
 ```csharp
 
