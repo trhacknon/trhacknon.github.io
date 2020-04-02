@@ -289,7 +289,7 @@ These are just some examples of how you could bypass hooks. The point is: by pro
 
 ### Example - Syscall Execution
 
-Speaking of... lets show how to directly execute syscalls. We use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
+Speaking of... lets show how to directly execute syscalls. We use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
 Note: Syscall execution does not currently work in WOW64 processes. Please see the note at the bottom of this post for details.
 
