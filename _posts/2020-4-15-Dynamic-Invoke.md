@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Emulating Covert Operations - 0: Dynamic Invocation (Avoiding PInvoke & API Hooks)
+title: Emulating Covert Operations - Dynamic Invocation (Avoiding PInvoke & API Hooks)
 ---
 
 *TLDR: Presenting DInvoke, a new API in SharpSploit that acts as a dynamic replacement for PInvoke. Using it, we show how to dynamically invoke unmanaged code from memory or disk while avoiding API Hooking and suspicious imports.*
