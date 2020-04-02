@@ -563,4 +563,4 @@ DInvoke represents a powerful and flexible new framework for post-exploitation o
 
 DInvoke is a framework for dynamically executing unmanaged code from managed code without using Pinvoke. It is our hope that it will provide you with the flexibility necessary to choose not just what your tools do, but how they do it. Whether you can use it to avoid detection is up to you.
 
-Next up, an in-depth exploration of how to leverage SharpSploit to execute PE modules from memory, either for post-exploitation or for hook evasion. b33f and I are currently preparing to speak at TroopersCon, so the next blog post will come out after the conference.
+Next up, an in-depth exploration of how to leverage SharpSploit to execute PE modules from memory, either for post-exploitation or for hook evasion. 
