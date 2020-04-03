@@ -199,9 +199,9 @@ Additionally, we have provided several ways to load modules from memory rather t
 * `MapModuleToMemoryAddress`: Manually maps a module that is already in memory (contained in a byte array), to a specific location in memory.
 * `OverloadModule`: Uses Module Overloading to map a module into memory backed by a decoy DLL on disk. Chooses a random decoy DLL that is not already loaded, is signed, and exists in `%WINDIR%\System32`. Threads that execute code in the module will appear to be executing code from a legitimate DLL. Can take either a byte array or the name of a file on disk.
 
-### Example - Finding Exports
+#### Example - Finding Exports
 
-The example below demonstrates several ways of finding and calling exports of a DLL.
+The example below demonstrates how to use these functions to find and call exports of a DLL.
 
 ```csharp
 
@@ -287,9 +287,9 @@ DInvoke provides you with many options for how to execute unmanaged code.
 These are just some examples of how you could bypass hooks. The point is: by providing you with powerful and flexible primitives for determining how code is executed, all operational choices are left up to you. Choose wisely. ;-)
 
 
-### Example - Syscall Execution
+#### Example - Syscall Execution
 
-Speaking of... lets show how to directly execute syscalls. We use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
+Speaking of bypassing hooks with syscalls... lets show you how to use them. First, we use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
 Note: Syscall execution does not currently work in WOW64 processes. Please see the note at the bottom of this post for details.
 
