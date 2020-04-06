@@ -269,7 +269,7 @@ Let's walk through the example in sequence:
 4) Use `GetLibraryAddress` to find an export within `ntdll.dll` by keyed hash.
 5) Starting from the base address of `ntdll.dll` that we found earlier, use `GetExportAddress` to find an export within the module in memory by name.
 
-[4_Resolve.png]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/4_Resolve.png "Resolving various functions with DInvoke")
 
 ## Why DInvoke?
 
@@ -396,7 +396,7 @@ namespace SpTestcase
 
 ```
 
-[3_Syscall.png]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/3_Syscall.png "Executing syscalls with DInvoke")
 
 ### Avoid Suspicious Imports
 
@@ -406,7 +406,7 @@ As previously mentioned, you can avoid statically importing suspicious API calls
 
 DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk.
 
-[theres-always-room-for-one-more-28316601.png](Technique #332,769 for executing mimikatz)
+![_config.yml]({{ site.baseurl }}/images/DInvoke/theres-always-room-for-one-more-28316601.png "Technique #332,769 for executing mimikatz") 
 
 The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why [malware](https://www.vkremez.com/2020/02/lets-learn-inside-parallax-rat-malware.html?m=1) often manually maps `ntdll.dll`. They use a [fresh copy to bypass any hooks](https://blog.malwarebytes.com/threat-analysis/2018/08/process-doppelganging-meets-process-hollowing_osiris/) placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. 
 
@@ -483,7 +483,7 @@ namespace MapTest
 
 ```
 
-[Manual_Map4.png]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/Manual_Map4.png "DInvoke and Manual Mapping")
 
 ### Unknown Execution Flow at Compile Time
 
@@ -511,17 +511,17 @@ While Module Overloading is covert in that it hides a module in memory backed by
 
 Incidentally, this sort of detection can also be used to reliably detect injection of .NET Assemblies into processes that do not normally load the CLR such as unmanaged executables. To demonstrate, see what modules are loaded by `notepad.exe` before injecting a .NET Assembly (such as something using SharpSploit) into it:
 
-[ModuleLoadCorrelation_pre.png]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/ModuleLoadCorrelation_pre.png "Correlating Module Loads - pre injection")
 
 Now, after injecting a .NET Assembly into the process, you can see that various .NET runtime DLLs were loaded into it.
 
-[ModuleLoadCorrelation_post.png]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/ModuleLoadCorrelation_post.png "Correlating Module Loads - post injection")
 
 ### Memory Scanning
 
 While Manual Mapping has the benefit of bypassing API hooks and not generating modload events, it has the disadvantage of producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal. Since memory scanning is a complex topic that is too nuanced to discuss here, I will simply refer you to an open source memory scanner that successfully detects SharpSploit's manual mapping and Module Overloading. hasherezade's pe-sieve project (https://github.com/hasherezade/pe-sieve) can detect modules that have been mapped into dynamically allocated memory or used to replace modules loaded into file-backed memory and dump them from the process.
 
-[screenshot that I sent to hasherezade]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/MCpmBiUD.jpg_large.jpg "Detection with pe-sieve")
 
 Memory scanning and evading it is a constant cat-and-mouse game. So, with some creativity, you could probably evade some of hasherezade's techniques until she finds your malware and dissects it to add to her collection. :-) But I will leave that as an exercise to the reader. ;-)
 
@@ -529,14 +529,15 @@ Memory scanning and evading it is a constant cat-and-mouse game. So, with some c
 
 Event Tracing for Windows is a powerful framework for monitoring Windows. Several event providers are available in Windows by default. They can be used by vendors to monitor for suspicious events. Or, they can be leveraged through a tool such as [SilkETW](https://www.fireeye.com/blog/threat-research/2019/03/silketw-because-free-telemetry-is-free.html) to log events to [Windows Event Log](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-1-installing-silketw-6eb74815e4a0) or a [SIEM](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-2-shipping-etw-events-to-helk-16837116d2f5). One of the default providers allows for introspection of the .NET Common Language Runtime. It can be used to watch for Assembly loads (including from memory!), suspicious IL signatures, and more. In our GitHub repo, we provide an [example](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit_Yara.txt) SilkETW [config](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit_Yara.json) and Yara [signatures](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit.yar) that demonstrate leveraging the .NET Runtime ETW provider to detect usage of DInvoke.
 
-[SilkETW_SharpSploit_Yara.png]
+![_config.yml]({{ site.baseurl }}/images/DInvoke/SilkETW_SharpSploit_Yara.png "SharpSploit Yara rules for SilkETW")
 
 
 ### Application Introspection (Hooking)
 
 While DInvoke does provide mechanisms for bypassing userland API hooking, it is up to the developer to use them effectively. As such, userland API hooking may still be effective against it. To demonstrate this, b33f wrote an example Frida [script](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/Fermion_MapModuleToMemory.js) that hooks `NtWriteVirtualMemory` and `NtCreateThreadEx`. When the former is called, the script checks to see if the data being written is in the format of a PE file. If so, it keeps track of the block of memory. Afterwards, whenever the latter is called, the script checks to see whether the new thread has a start address within the dynamically mapped PE file. If so, it triggers an alert.
 
-[Fermion_SharpSploit_MapModuleToMemory.png]
+
+![_config.yml]({{ site.baseurl }}/images/DInvoke/Fermion_SharpSploit_MapModuleToMemory.png "Fermion hooking") 
 
 It is also worth noting that DInvoke is entirely incapable of evading kernel-level hooking of syscalls. The same is true for all malware that runs from user-land. As such, any drivers (such as an EDR component) that hook syscalls will be unaffected.
 
