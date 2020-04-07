@@ -525,11 +525,13 @@ While Manual Mapping has the benefit of bypassing API hooks and not generating m
 
 Memory scanning and evading it is a constant cat-and-mouse game. So, with some creativity, you could probably evade some of hasherezade's techniques until she finds your malware and dissects it to add to her collection. :-) But I will leave that as an exercise to the reader. ;-)
 
-### ETW
+### ETW (Event Tracing for Windows)
 
 Event Tracing for Windows is a powerful framework for monitoring Windows. Several event providers are available in Windows by default. They can be used by vendors to monitor for suspicious events. Or, they can be leveraged through a tool such as [SilkETW](https://www.fireeye.com/blog/threat-research/2019/03/silketw-because-free-telemetry-is-free.html) to log events to [Windows Event Log](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-1-installing-silketw-6eb74815e4a0) or a [SIEM](https://medium.com/threat-hunters-forge/threat-hunting-with-etw-events-and-helk-part-2-shipping-etw-events-to-helk-16837116d2f5). One of the default providers allows for introspection of the .NET Common Language Runtime. It can be used to watch for Assembly loads (including from memory!), suspicious IL signatures, and more. In our GitHub repo, we provide an [example](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit_Yara.txt) SilkETW [config](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit_Yara.json) and Yara [signatures](https://github.com/FuzzySecurity/BlueHatIL-2020/blob/master/Detection/SilkETW_SharpSploit.yar) that demonstrate leveraging the .NET Runtime ETW provider to detect usage of DInvoke.
 
 ![_config.yml]({{ site.baseurl }}/images/DInvoke/SilkETW_SharpSploit_Yara.png "SharpSploit Yara rules for SilkETW")
+
+It is important to note that ETW [can](https://blog.xpnsec.com/hiding-your-dotnet-etw/) [be](https://twitter.com/FuzzySec/status/1240659417219170304) [bypassed](https://github.com/outflanknl/TamperETW). However, it can still be an incredibly valuable data source for detecting malicious behavior, both when performed in managed and native code.
 
 
 ### Application Introspection (Hooking)
