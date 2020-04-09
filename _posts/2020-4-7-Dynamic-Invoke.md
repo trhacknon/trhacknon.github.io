@@ -24,7 +24,7 @@ By leveraging this dynamic loading API rather than the static loading API that s
 
 We accomplish this through the magic of [Delegates](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/). .NET includes the Delegate API as a way of wrapping a method/function in a class. If you have ever used the Reflection API to enumerate methods in a class, the objects you were inspecting were actually a form of delegate.
 
-The Delegate API has a number of fantastic features, such as the ability to instantiate Delegates from function pointers and to dynamically invoke the function wrapped by the delegate while passing in parameters. 
+The Delegate API has a number of fantastic features, such as the ability to instantiate a Delegate from a pointer to a function and to dynamically invoke that function while passing in parameters. 
 
 Let's take a look at how DInvoke uses these Delegates:
 
