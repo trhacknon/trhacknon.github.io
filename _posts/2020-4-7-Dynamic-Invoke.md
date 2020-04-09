@@ -14,7 +14,7 @@ This blog post is the first in a three-part series detailing the features we hav
 * Blue Hat video: https://youtu.be/FuxpMXTgV9s
 * Presentation slides and materials: https://github.com/FuzzySecurity/BlueHatIL-2020
 
-It is important to note that nothing in this post or series represents a new fundamental technique. Everything Technique that we implement has either been observed to be used by real threat actors in the wild before, discussed publically by offensive security researchers, or is a variant of an already public Technique. And there is no exploit here. Just abuse of features and solid operational tradecraft. 
+It is important to note that nothing in this post or series represents a new fundamental technique. Every Technique that we implement has either been observed to be used by real threat actors in the wild before, discussed publically by offensive security researchers, or is a variant of an already public Technique. And there is no exploit here. Just abuse of features and solid operational tradecraft. 
 
 ## Delegates
 
