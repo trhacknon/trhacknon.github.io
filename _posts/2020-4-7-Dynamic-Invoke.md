@@ -531,7 +531,7 @@ Event Tracing for Windows is a powerful framework for monitoring Windows. Severa
 
 ![_config.yml]({{ site.baseurl }}/images/DInvoke/SilkETW_SharpSploit_Yara.png "SharpSploit Yara rules for SilkETW")
 
-It is important to note that ETW [can](https://blog.xpnsec.com/hiding-your-dotnet-etw/) [be](https://twitter.com/FuzzySec/status/1240659417219170304) [bypassed](https://github.com/outflanknl/TamperETW). However, it can still be an incredibly valuable data source for detecting malicious behavior, both when performed in managed and native code.
+It is important to note that ETW [can](https://blog.xpnsec.com/hiding-your-dotnet-etw/) [be](https://twitter.com/FuzzySec/status/1240659417219170304) [bypassed](https://github.com/outflanknl/TamperETW) [several](https://medium.com/palantir/tampering-with-windows-event-tracing-background-offense-and-defense-4be7ac62ac63) [ways](https://modexp.wordpress.com/2020/04/08/red-teams-etw/). However, it can still be an incredibly valuable data source for detecting malicious behavior, both when performed in managed and native code.
 
 
 ### Application Introspection (Hooking)
