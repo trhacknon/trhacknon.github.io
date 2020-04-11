@@ -369,7 +369,7 @@ These are just some examples of how you could bypass hooks. The point is: by pro
 
 ### Example - Demonstrating API Hook Evasion
 
-Let us demonstrate evading API hooks using DInvoke and Manual Mapping. In the example below, 
+Let us demonstrate evading API hook evasion using DInvoke and Manual Mapping. In the example below, we will first call `OpenProcess` normally using PInvoke. Then, we will call it in the sequence described above (minus syscalls) to demonstrate that each mechanism successfully evades API hooks. 
 
 ```csharp
 
