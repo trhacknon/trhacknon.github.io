@@ -429,8 +429,6 @@ namespace MapTest
 {
     class Program
     {
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate int MessageBox(IntPtr hWnd, String text, String caption, int options);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int TestFunc();
