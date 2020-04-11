@@ -504,6 +504,8 @@ namespace SpTestcase
 
 To test this, we will use the tool [API Monitor v2](http://www.rohitab.com/apimonitor) to hook `kernel32.dll!OpenProcess`. Then we will run the demo through API Monitor. You may observe which of our calls to `OpenProcess` were caught in hooks by watching for those that are called with the PROCESS_ALL_ACCESS flag. As you will see, API Monitor successfully catches the API call when it is performed with PInvoke. However, it does NOT succeed when we use DInvoke or Manual Mapping. You may watch the video on Vimeo to see this in action.
 
+<iframe src="https://player.vimeo.com/video/406589341" width="640" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+<p><a href="https://vimeo.com/406589341">SharpSploit: Bypassing API Hooks via DInvoke and Manual Mapping</a> from <a href="https://vimeo.com/user98951060">The Wover</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
 
 #### Example - Syscall Execution
 
