@@ -7,18 +7,30 @@ title: Emulating Covert Operations - Dynamic Invocation (Avoiding PInvoke & API 
 
 # Dynamic Invocation - D/Invoke
 
-Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have quitely been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. You may call arbitrary unmanaged code from memory (while passing parameters), allowing you to bypass API hooking in a variety of ways and execute post-exploitation payloads reflectively. This also avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Overall, DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code.
+Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have quietly been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. You may call arbitrary unmanaged code from memory (while passing parameters), allowing you to bypass API hooking in a variety of ways and execute post-exploitation payloads reflectively. This also avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Overall, DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code.
 
 This blog post is the first in a three-part series detailing the features we have added to SharpSploit. We also presented on these subjects at Blue Hat IL 2020.
 
 * Blue Hat video: https://youtu.be/FuxpMXTgV9s
 * Presentation slides and materials: https://github.com/FuzzySecurity/BlueHatIL-2020
 
-It is important to note that nothing in this post or series represents a new fundamental technique. Every Technique that we implement has either been observed to be used by real threat actors in the wild before, discussed publically by offensive security researchers, or is a variant of an already public Technique. And there is no exploit here. Just abuse of features and solid operational tradecraft. 
+It is important to note that nothing in this post or series represents a new fundamental technique. Every Technique that we implement has either been observed to be used by real threat actors in the wild before, discussed publicly by offensive security researchers, or is a variant of an already public Technique. And there is no exploit here. Just abuse of features and solid operational tradecraft. 
+
+## Background - P/Invoke
+
+Before we jump into the additions to SharpSploit, let's talk about why considered them to be necessary.
+
+.NET provides a mechanism called [Platform Invoke (commonly known as P/Invoke)](https://docs.microsoft.com/en-us/dotnet/standard/native-interop/pinvoke) that allows .NET application to access data and APIs in unmanaged libraries (DLLs). By using P/Invoke, a C# developer may easily make calls to the standard Windows APIs. Offensive tool developers have taken advantage of this to craft .NET Assemblies (EXEs/DLLs) that leverage the power of both the managed and unmanaged Windows APIs to perform post-exploitation tradecraft. Since .NET Assemblies are relatively easy to load and execute from memory, this has enabled offensive operators to easily execute advanced post-exploitation tradecraft without dropping files to disk that could be detected by endpoint security tools.
+
+However, there are two significant disadvantages to relying on P/Invoke for offensive tools:
+1) Any reference to a Windows API call made through P/Invoke will result in a corresponding entry in the .NET Assembly's Import Table. When your .NET Assembly is loaded, its Import Address Table will be updated with the addresses of the functions that you are calling. This is known as a "static" reference because the application does not need to actively locate the function before calling it. In contrast, a "dynamic" reference is when the application is designed to manually find the address of the function. As an example, if you use P/Invoke to call `kernel32!CreateRemoteThread` then your executable's IAT will include a static reference to that function, telling everybody that it wants to perform the suspicious behavior of injecting code into a different process. Malware analysts and automated security tools commonly inspect the IAT of executables to learn about their behavior. If your executable is eventually analyzed by defenders (and it is safer to assume that it will be), then letting your API calls be referenced in the IAT is a quick win for the defender.
+2) If the endpoint security product running on the target machine is monitoring API calls (such as via API Hooking), then any calls made via P/Invoke may be detected by the product. This kind of monitoring is a very powerful mechanism for detecting malicious behavior in a process and can be used to develop high-fidelity detection analytics. It also has an inherent blocking capability that allows such products to *prevent* those API calls.
+
+As red teamers and offensive tool developers, we must be prepared to operate offensively in the face of an active defense. That means designing our tools to be reliable against mechanisms that defenders are using to catch and deter us. Therefore, any mechanism such as P/Invoke should be considered a single point of failure and should be eliminated if possible. This is why we created D/Invoke. To provide you with *options* not only in *what* you choose to execute on-target, but also in *how* you execute it.
 
 ## Delegates
 
-So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we use any way we would like to load a DLL into memory. Then, we get a pointer to a function in that DLL. We may call that function from the pointer while passing in our parameters.
+So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we load a DLL into memory manually. This can be done using whatever mechanism you would like. Then, we get a pointer to a function in that DLL. We may call that function from the pointer while passing in our parameters.
 
 By leveraging this dynamic loading API rather than the static loading API that sits behind PInvoke, you avoid directly importing suspicious API calls into your .NET Assembly. Additionally, this API lets you easily invoke unmanaged code from memory in C# (passing in parameters and receiving output) without doing some hacky workaround like self-injecting shellcode.
 
@@ -86,6 +98,8 @@ public delegate UInt32 NtOpenProcess(
     ref Execute.Native.OBJECT_ATTRIBUTES ObjectAttributes,
     ref Execute.Native.CLIENT_ID ClientId);
 ```
+
+Once the Delegates are setup, they may be used to call arbitrary unmanaged code. For ease of use, there is a (growing) library of delegates and function wrappers for commonly used Windows NT/Win32 API calls. We also provide functions that load executables in a variety of ways, and make it easy to execute their code.
 
 ## Using DInvoke
 
@@ -287,7 +301,7 @@ In addition to normal manual mapping, we also added support for Module Overloadi
 
 To learn more about our manual mapping and Module Overloading implementations, check out the second post in this series (will add link once it is posted).
 
-A word of caution: manual mapping is complex and we do not garauntee that our implementation covers every edge case. The version we have implemented now is servicable for many common use cases and will be improved upon over time. Additionally, manual mapping and syscall stub generation do not currently work in WOW64 processes. See the note at the end of this post.
+A word of caution: manual mapping is complex and we do not guarantee that our implementation covers every edge case. The version we have implemented now is serviceable for many common use cases and will be improved upon over time. Additionally, manual mapping and syscall stub generation do not currently work in WOW64 processes. See the note at the end of this post.
 
 ### Example - Calling Exports from Memory
 
@@ -630,7 +644,7 @@ Sometimes, you may want to write a program where the flow of execution is unknow
 
 ### Shellcode Execution
 
-A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independantly. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in or attempts to return a value.
+A Delegate is effectively a wrapper for a function pointer. Shellcode is machine code that can be executed independently. As such, if you have a pointer to it, you can execute it. SharpSploit already took advantage of delegates in order to execute shellcode in this way in the `SharpSploit.Execution.ShellCode.ShellCodeExecute` function. You could also execute shellcode using the `DynamicFunctionInvoke` method within DInvoke. Furthermore, you could use it to execute shellcode that expects parameters to be passed in or attempts to return a value.
 
 ## Integrating DInvoke into Tools
 
