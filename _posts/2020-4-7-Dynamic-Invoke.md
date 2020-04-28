@@ -18,7 +18,7 @@ It is important to note that nothing in this post or series represents a new fun
 
 ## Background - P/Invoke
 
-Before we jump into the additions to SharpSploit, let's talk about why considered them to be necessary.
+Before we jump into the additions to SharpSploit, let's talk about why we considered them to be necessary.
 
 .NET provides a mechanism called [Platform Invoke (commonly known as P/Invoke)](https://docs.microsoft.com/en-us/dotnet/standard/native-interop/pinvoke) that allows .NET application to access data and APIs in unmanaged libraries (DLLs). By using P/Invoke, a C# developer may easily make calls to the standard Windows APIs. Offensive tool developers have taken advantage of this to craft .NET Assemblies (EXEs/DLLs) that leverage the power of both the managed and unmanaged Windows APIs to perform post-exploitation tradecraft. Since .NET Assemblies are relatively easy to load and execute from memory, this has enabled offensive operators to easily execute advanced post-exploitation tradecraft without dropping files to disk that could be detected by endpoint security tools.
 
