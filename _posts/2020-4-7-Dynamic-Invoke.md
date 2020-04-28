@@ -20,7 +20,7 @@ It is important to note that nothing in this post or series represents a new fun
 
 Before we jump into the additions to SharpSploit, let's talk about why we considered them to be necessary.
 
-.NET provides a mechanism called [Platform Invoke (commonly known as P/Invoke)](https://docs.microsoft.com/en-us/dotnet/standard/native-interop/pinvoke) that allows .NET application to access data and APIs in unmanaged libraries (DLLs). By using P/Invoke, a C# developer may easily make calls to the standard Windows APIs. Offensive tool developers have taken advantage of this to craft .NET Assemblies (EXEs/DLLs) that leverage the power of both the managed and unmanaged Windows APIs to perform post-exploitation tradecraft. Since .NET Assemblies are relatively easy to load and execute from memory, this has enabled offensive operators to easily execute advanced post-exploitation tradecraft without dropping files to disk that could be detected by endpoint security tools.
+.NET provides a mechanism called [Platform Invoke (commonly known as P/Invoke)](https://docs.microsoft.com/en-us/dotnet/standard/native-interop/pinvoke) that allows .NET applications to access data and APIs in unmanaged libraries (DLLs). By using P/Invoke, a C# developer may easily make calls to the standard Windows APIs. Offensive tool developers have taken advantage of this to craft .NET Assemblies (EXEs/DLLs) that leverage the power of both the managed and unmanaged Windows APIs to perform post-exploitation tradecraft. Since .NET Assemblies are relatively easy to load and execute from memory, this has enabled offensive operators to easily execute advanced post-exploitation tradecraft without dropping files to disk that could be detected by endpoint security tools.
 
 However, there are two significant disadvantages to relying on P/Invoke for offensive tools:
 1) Any reference to a Windows API call made through P/Invoke will result in a corresponding entry in the .NET Assembly's Import Table. When your .NET Assembly is loaded, its Import Address Table will be updated with the addresses of the functions that you are calling. This is known as a "static" reference because the application does not need to actively locate the function before calling it. In contrast, a "dynamic" reference is when the application is designed to manually find the address of the function. As an example, if you use P/Invoke to call `kernel32!CreateRemoteThread` then your executable's IAT will include a static reference to that function, telling everybody that it wants to perform the suspicious behavior of injecting code into a different process. Malware analysts and automated security tools commonly inspect the IAT of executables to learn about their behavior. If your executable is eventually analyzed by defenders (and it is safer to assume that it will be), then letting your API calls be referenced in the IAT is a quick win for the defender.
@@ -30,7 +30,7 @@ As red teamers and offensive tool developers, we must be prepared to operate off
 
 ## Delegates
 
-So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we load a DLL into memory manually. This can be done using whatever mechanism you would like. Then, we get a pointer to a function in that DLL. We may call that function from the pointer while passing in our parameters.
+So what does DInvoke actually entail? Rather than using PInvoke to import the API calls that we want to use, we load a DLL into memory manually. This can be done using whatever mechanism you would prefer. Then, we get a pointer to a function in that DLL. We may call that function from the pointer while passing in our parameters.
 
 By leveraging this dynamic loading API rather than the static loading API that sits behind PInvoke, you avoid directly importing suspicious API calls into your .NET Assembly. Additionally, this API lets you easily invoke unmanaged code from memory in C# (passing in parameters and receiving output) without doing some hacky workaround like self-injecting shellcode.
 
@@ -86,7 +86,7 @@ public static extern IntPtr OpenProcess(
 );
 ```
 
-You must also pass in a function prototype for DInvoke. This lets the Delegate know how to set up the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code from memory in C# (by self-injecting shellcode), this is MUCH easier!
+You must also pass in a function prototype for DInvoke. This lets the Delegate know how to set up the CPU registers and the stack when it invokes the function. If you compare this to how you would normally invoke unmanaged code from memory in C# (by self-injecting shellcode), this is MUCH easier!
 
 Defining a delegate works in a similar manner. You can define a delegate similar to how you would define a variable. Optionally, you can specify what calling convention to use when calling the function wrapped by the delegate.
 
@@ -99,7 +99,7 @@ public delegate UInt32 NtOpenProcess(
     ref Execute.Native.CLIENT_ID ClientId);
 ```
 
-Once the Delegates are setup, they may be used to call arbitrary unmanaged code. For ease of use, there is a (growing) library of delegates and function wrappers for commonly used Windows NT/Win32 API calls. We also provide functions that load executables in a variety of ways, and make it easy to execute their code.
+Once the Delegates are setup, they may be used to call arbitrary unmanaged code. For ease of use, there is a (growing) library of delegates and function wrappers for commonly used Windows NT/Win32 API calls. We also provide functions that load executables in a variety of ways, making it easier to execute their code covertly.
 
 ## Using DInvoke
 
