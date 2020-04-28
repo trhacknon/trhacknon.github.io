@@ -201,7 +201,7 @@ The section above shows how you would use Delegates and the DInvoke API. But how
 
 The easiest way to locate and execute a function is to use the `DynamicAPIInvoke` function shown above in the first code example. It uses `GetLibraryAddress` to locate a function.
 
-* `GetLibraryAddress`: First, checks if the module is already loaded using `GetLoadedModuleAddress`. If not, it loads the module into the process using `LoadModuleFromDisk`, which uses the NT API call `LdrLoadDll` to load the DLL. Either way, it then uses `GetExportAddress` to find the function in the module. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
+* `GetLibraryAddress`: First, checks if the module is already loaded using `GetLoadedModuleAddress`. If not, it loads the module into the process using `LoadModuleFromDisk`, which uses the NT API call `LdrLoadDll` to load the DLL. Either way, it then uses `GetExportAddress` to find the function in the module. Can take a string, an ordinal number, or a keyed hash as the identifier for the function you wish to call.
 * `GetLoadedModuleAddress`: Uses `Process.GetCurrentProcess().Modules` to check if a module on disk is already loaded into the current process. If so, returns the address of that module.
 * `LoadModuleFromDisk`: Loads a module from disk using the NT API call `LdrLoadDll`. This will generate an Image Load ("modload") event for the process, which could be used as part of a detection signal.
 * `GetExportAddress`: Starting from the base address of a module in memory, parses the PE headers of the module to locate a particular function. Can take a string, an ordinal number, or a hash as the identifier for the function you wish to call.
