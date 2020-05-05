@@ -406,3 +406,15 @@ public class RemoteThreadCreate : ExecutionTechnique
 Use Covenant's SharpShell to build a custom injector on the fly.
 
 Record video.
+
+## Detection
+
+How do you have a modular detection for stuff like this? Talk about it in terms of breaking down these TTPs in terms of capability abstraction. At each level of the Funnel of Fidelity, what can you do?
+
+Break the primitives of process injection: allocate -> write -> execute
+
+### Telemetry
+
+Known stuff. Also, Handles to remote threads/processes. 
+
+### 
