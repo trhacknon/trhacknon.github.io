@@ -7,7 +7,7 @@ title: Emulating Covert Operations - Dynamic Invocation (Avoiding PInvoke & API 
 
 # Dynamic Invocation - D/Invoke
 
-Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have quietly been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. You may call arbitrary unmanaged code from memory (while passing parameters), allowing you to bypass API hooking in a variety of ways and execute post-exploitation payloads reflectively. This also avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Overall, DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code.
+Over the past few months, myself and b33f (@FuzzySec, Ruben Boonen) have quietly been adding an API to SharpSploit that helps you use unmanaged code from C# while avoiding suspicious P/Invokes. Rather than statically importing API calls with PInvoke, you may use Dynamic Invocation (I call it DInvoke) to load the DLL at runtime and call the function using a pointer to its location in memory. You may call arbitrary unmanaged code from memory (while passing parameters), allowing you to bypass API hooking in a variety of ways and execute post-exploitation payloads reflectively. This also avoids detections that look for imports of suspicious API calls via the Import Address Table in the .NET Assembly's PE headers. Overall, DInvoke is intended to be a direct replacement for PInvoke that gives offensive tool developers great flexibility in how they can access and invoke unmanaged code.
 
 This blog post is the first in a three-part series detailing the features we have added to SharpSploit. We also presented on these subjects at Blue Hat IL 2020.
 
@@ -219,7 +219,7 @@ The example below demonstrates how to use these functions to find and call expor
 
 ```csharp
 
-///Author: b33f (@FuzzySecurity, Ruben Boonen)
+///Author: b33f (@FuzzySec, Ruben Boonen)
 using System;
 
 namespace SpTestcase
@@ -529,7 +529,7 @@ Note: Syscall execution does not currently work in WOW64 processes. Please see t
 
 ```csharp
 
-///Author: b33f (@FuzzySecurity, Ruben Boonen)
+///Author: b33f (@FuzzySec, Ruben Boonen)
 using System;
 using System.Runtime.InteropServices;
 
