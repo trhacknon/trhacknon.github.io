@@ -634,7 +634,7 @@ namespace SpTestcase
 
 Using syscalls this way will bypass ALL kinds of user-mode API hooking. You may test this in API Monitor the same way that we showed bypassing hooks with DInvoke and Manual Mapping.
 
-Note: smelly_vx and am0nsec recently published a technique called Hell's Gate for invoking syscalls dynamically. It is an excellent paper and technique that you should [https://vxug.fakedoma.in/papers/hells-gate.pdf](go and read). Additionally modexp recently [https://modexp.wordpress.com/2020/06/01/syscalls-disassembler/(]published a post) on dynamically invoking syscalls that takes advantage of the built-in Windows Debugging Engine to dissassemble syscall stubs, find their ID, and invoke them. 
+Note: smelly_vx and am0nsec recently published a technique called Hell's Gate for invoking syscalls dynamically. It is an excellent paper and technique that you should [https://vxug.fakedoma.in/papers/hells-gate.pdf](go and read). Additionally modexp recently [https://modexp.wordpress.com/2020/06/01/syscalls-disassembler/](published a post) on dynamically invoking syscalls that takes advantage of the built-in Windows Debugging Engine to dissassemble syscall stubs, find their ID, and invoke them. 
 
 ### Avoid Suspicious Imports
 
