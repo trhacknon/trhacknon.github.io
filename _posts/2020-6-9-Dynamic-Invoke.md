@@ -368,7 +368,7 @@ namespace MapTest
 
 ```
 
-![_config.yml]({{ site.baseurl }}/images/DInvoke/Manual_Map4.png "DInvoke and Manual Mapping")
+![_config.yml]({{ site.baseurl }}/images/Manual_Map/ManMap_4.PNG "DInvoke and Manual Mapping")
 
 ### Bypass Hooking
 
