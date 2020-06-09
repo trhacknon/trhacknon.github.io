@@ -634,7 +634,7 @@ namespace SpTestcase
 
 Using syscalls this way will bypass ALL kinds of user-mode API hooking. You may test this in API Monitor the same way that we showed bypassing hooks with DInvoke and Manual Mapping.
 
-Note: smelly_vx and am0nsec recently published a technique called Hell's Gate for invoking syscalls dynamically. It is an excellent paper and technique that you should [https://vxug.fakedoma.in/papers/hells-gate.pdf](go and read). Additionally modexp recently [https://modexp.wordpress.com/2020/06/01/syscalls-disassembler/](published a post) on dynamically invoking syscalls that takes advantage of the built-in Windows Debugging Engine to dissassemble syscall stubs, find their ID, and invoke them. 
+Note: smelly_vx and am0nsec recently published a technique called Hell's Gate for invoking syscalls dynamically. It is an excellent paper and technique that you should [go and read](https://vxug.fakedoma.in/papers/hells-gate.pdf). Additionally modexp recently [published a post](https://modexp.wordpress.com/2020/06/01/syscalls-disassembler/) on dynamically invoking syscalls that takes advantage of the built-in Windows Debugging Engine to dissassemble syscall stubs, find their ID, and invoke them. 
 
 ### Avoid Suspicious Imports
 
@@ -650,7 +650,7 @@ A Delegate is effectively a wrapper for a function pointer. Shellcode is machine
 
 ## Integrating DInvoke into Tools
 
-You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [https://cobbr.io/SharpGen.html](excellent blog post) that covers how to integrate existing .NET Assemblies such as SharpSploit into your red team tools. Alternatively, if you don't want to embed SharpSploit into your tool, you can copy and paste the files composing DInvoke into your project and reference them. An example would be [https://github.com/med0x2e/NoAmci](NoAmci) by med0x2e.
+You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [excellent blog post](https://cobbr.io/SharpGen.html) that covers how to integrate existing .NET Assemblies such as SharpSploit into your red team tools. Alternatively, if you don't want to embed SharpSploit into your tool, you can copy and paste the files composing DInvoke into your project and reference them. An example would be [NoAmci](https://github.com/med0x2e/NoAmci) by med0x2e.
 
 ## Detection
 
@@ -674,7 +674,7 @@ Now, after injecting a .NET Assembly into the process, you can see that various 
 
 ### Memory Scanning
 
-While Manual Mapping has the benefit of bypassing API hooks and not generating modload events, it has the disadvantage of producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal. Since memory scanning is a complex topic that is too nuanced to discuss here, I will simply refer you to an open source memory scanner that successfully detects SharpSploit's manual mapping and Module Overloading. hasherezade's pe-sieve project (https://github.com/hasherezade/pe-sieve) can detect modules that have been mapped into dynamically allocated memory or used to replace modules loaded into file-backed memory and dump them from the process.
+While Manual Mapping has the benefit of bypassing API hooks and not generating modload events, it has the disadvantage of producing anomalous memory artifacts. Random executable PE files floating around in dynamically allocated memory is not exactly normal. Since memory scanning is a complex topic that is too nuanced to discuss here, I will simply refer you to an open source memory scanner that successfully detects SharpSploit's manual mapping and Module Overloading. hasherezade's [pe-sieve project](https://github.com/hasherezade/pe-sieve) can detect modules that have been mapped into dynamically allocated memory or used to replace modules loaded into file-backed memory and dump them from the process.
 
 ![_config.yml]({{ site.baseurl }}/images/DInvoke/MCpmBiUD.jpg_large.jpg "Detection with pe-sieve")
 
