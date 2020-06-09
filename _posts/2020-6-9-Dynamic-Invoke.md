@@ -523,7 +523,7 @@ To test this, we will use the tool [API Monitor v2](http://www.rohitab.com/apimo
 
 #### Example - Syscall Execution
 
-You may also bypass hooks with syscalls... let's show you how to use them. First, we use `GetSyscallStub` to ~steal~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
+You may also bypass hooks with syscalls... let's show you how to use them. First, we use `GetSyscallStub` to ~~steal~~ borrow the machine code of the syscall wrapper within `ntdll.dll` for `NtOpenProcess`. This ensures that we don't have to maintain a library of syscall IDs, since the appropriate ID will be embedded in the copy of `ntdll.dll` that resides on the local system. Then, we execute the resulting machine code using a delegate representing `NtOpenProcess`. Incidentally, because we are using a delegate to execute raw machine code, this also demonstrates how you could execute shellcode in the current process while passing in parameters and getting a return value.
 
 Note: Syscall execution does not currently work in WOW64 processes. Please see the note at the bottom of this post for details.
 
