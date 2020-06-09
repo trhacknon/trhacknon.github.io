@@ -11,8 +11,8 @@ Over the past few months, myself and b33f (@FuzzySecurity, Ruben Boonen) have qu
 
 This blog post is the first in a three-part series detailing the features we have added to SharpSploit. We also presented on these subjects at Blue Hat IL 2020.
 
-* Blue Hat video: https://youtu.be/FuxpMXTgV9s
-* Presentation slides and materials: https://github.com/FuzzySecurity/BlueHatIL-2020
+* Blue Hat video: (https://youtu.be/FuxpMXTgV9s)
+* Presentation slides and materials: (https://github.com/FuzzySecurity/BlueHatIL-2020)
 
 It is important to note that nothing in this post or series represents a new fundamental technique. Every Technique that we implement has either been observed to be used by real threat actors in the wild before, discussed publicly by offensive security researchers, or is a variant of an already public Technique. And there is no exploit here. Just abuse of features and solid operational tradecraft. 
 
@@ -656,7 +656,7 @@ You can use DInvoke by downloading SharpSploit today. Ryan Cobb has an [excellen
 
 DInvoke provides many operational security advantages to offensive tool developers. Fortunately for defenders there are measures you can take to detect the DInvoke or the techniques that it enables, though it is not all sunshine, lollipops and rainbows. Nothing is undetectable. Like a ripple in a pond, every action you take on-target produces anomalies even if they are ephemeral. DInvoke is no exception.
 
-The examples provided below are available in the GitHub repo for our Blue Hat IL talk: https://github.com/FuzzySecurity/BlueHatIL-2020/tree/master/Detection
+The examples provided below are available in the GitHub repo for our Blue Hat IL talk: (https://github.com/FuzzySecurity/BlueHatIL-2020/tree/master/Detection)
 
 ### Correlating Module Load Events
 
