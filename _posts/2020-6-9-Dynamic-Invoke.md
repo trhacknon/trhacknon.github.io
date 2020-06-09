@@ -634,6 +634,8 @@ namespace SpTestcase
 
 Using syscalls this way will bypass ALL kinds of user-mode API hooking. You may test this in API Monitor the same way that we showed bypassing hooks with DInvoke and Manual Mapping.
 
+Note: smelly_vx and am0nsec recently published a technique called Hell's Gate for invoking syscalls dynamically. It is an excellent paper and technique that you should [https://vxug.fakedoma.in/papers/hells-gate.pdf](go and read). Additionally modexp recently [https://modexp.wordpress.com/2020/06/01/syscalls-disassembler/(]published a post) on dynamically invoking syscalls that takes advantage of the built-in Windows Debugging Engine to dissassemble syscall stubs, find their ID, and invoke them. 
+
 ### Avoid Suspicious Imports
 
 As previously mentioned, you can avoid statically importing suspicious API calls. If, for example, you wanted to import `MiniDumpWriteDump` from `Dbghelp.dll` you could use DInvoke to dynamically load the DLL and invoke the API call. If you were then to inspect your .NET Assembly in an Assembly dissassembler (such as dnSpy), you would find that `MiniDumpWriteDump` is not referenced in its import table.
