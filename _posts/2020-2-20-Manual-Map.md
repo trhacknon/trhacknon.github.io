@@ -1,3 +1,14 @@
+---
+layout: post
+title: Emulating Covert Operations - Manually Mapping Portable Executables (AKA 
+---
+
+*TLDR: A guide to the new Manual Mapping API in SharpSploit, including a ranty discussion on the arcane art of manually mapping Windows executables (Portable Executables).*
+
+![_config.yml]({{ site.baseurl }}/images/Manual_Map/45953a.jpg "Loaders, man...")
+
+
+
 ## Manual Mapping
 
 ```csharp
