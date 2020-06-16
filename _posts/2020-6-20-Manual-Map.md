@@ -81,6 +81,22 @@ Go through the directory, find the module and load it (LoadLibrary, LdrLoadDll, 
 
 This is an opportunity to hook API calls relative to the module that you are loading. If the module statically imports an API call, you can provide a pointer to your hook (such as some shellcode) rather than the legitimate API call.
 
+### API Set Resolution
+
+### Module Initialization
+
+Invoking DLLMain if it is available with PROCESS_ATTACH.
+
+### TLS Callbacks
+
+### Export Resolution & Invocation
+
+### Invoking Main
+
+### Passing Command-Line Arguments
+
+#### Pure Managed Hooking
+
 # Edge Cases
 
 Security Cookie
