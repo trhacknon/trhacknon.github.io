@@ -17,20 +17,45 @@ Started with 29A.
 
 Many threat actors 
 
+Also in Donut https://github.com/TheWover/donut/blob/master/loader/inmem_pe.c
+
+As usual, hasherezade has a repo: https://github.com/hasherezade/libpeconv
+
 ## Understanding the Windows Loader
+
+Ghidra time
+
 
 ## Building a Minimal Loader
 
 1) Parsing the PE Headers
 2) Relocation
-3) Alignment (virtualization) & Protections
+3) Virtualization (Alignment, Protections, Resources)
 4) Import Address Resolution
 5) API Set Resolution
 6) Module Initialization
 7) TLS Callbacks
 8) Export Resolution & Invocation
 9) Invoking Main
+10) Passing Command Line Parameters
 
+### Parsing the PE Headers
+
+What other useful information can we find here?
+
+### Relocation
+
+All your base are belong to us
+
+### 
+
+# Edge Cases
+
+Security Cookie
+
+Nonstandard entry points (fuck you Windows)
+
+Some runtimes use other than GetCommandLine.
 
 ## Using the Manual Mapping API in SharpSploit
 
