@@ -21,6 +21,8 @@ Also in Donut https://github.com/TheWover/donut/blob/master/loader/inmem_pe.c
 
 Libpeconv (hasherezade): https://github.com/hasherezade/libpeconv
 
+Article from Matt Pietrek, 1994: https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)?redirectedfrom=MSDN Covers the PE format in depth.
+
 ## Understanding the Windows Loader
 
 Ghidra time
@@ -71,7 +73,13 @@ Modules sometimes have a preferred memory base. If the module does, then relocat
 
 #### Resources
 
-### 
+### Import Address Resolution
+
+Go through the directory, find the module and load it (LoadLibrary, LdrLoadDll, or PE export reader)
+
+#### IAT Hooking
+
+This is an opportunity to hook API calls relative to the module that you are loading. If the module statically imports an API call, you can provide a pointer to your hook (such as some shellcode) rather than the legitimate API call.
 
 # Edge Cases
 
@@ -80,6 +88,8 @@ Security Cookie
 Nonstandard entry points (fuck you Windows)
 
 Some runtimes use other than GetCommandLine.
+
+Mixed Assemblies (`.managed`)
 
 ## Using the Manual Mapping API in SharpSploit
 
@@ -151,7 +161,13 @@ namespace MapTest
 
 [Manual_Map4.png]
 
-## Module Overloading
+## Defense Evasion
+
+Adding yourself to the loaded module list in the PEB
+
+Using a file backed section
+
+### Module Overloading
 
 Basically the same as Phantom DLL Hollowing and Module Stomping. We (hasherezade ) 
 
