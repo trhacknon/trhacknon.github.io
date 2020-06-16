@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Emulating Covert Operations - Manually Mapping Portable Executables (AKA 
+title: Emulating Covert Operations - Manually Mapping Portable Executables
 ---
 
 *TLDR: A guide to the new Manual Mapping API in SharpSploit, including a ranty discussion on the arcane art of manually mapping Windows executables (Portable Executables).*
