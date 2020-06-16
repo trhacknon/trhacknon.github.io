@@ -7,9 +7,18 @@ title: Emulating Covert Operations - Manually Mapping Portable Executables (AKA
 
 ![_config.yml]({{ site.baseurl }}/images/Manual_Map/45953a.jpg "Loaders, man...")
 
+# Manual Mapping
+
+Why manually map? 
+
+## History
+
+Started with 29A.
+
+Many threat actors 
 
 
-## Manual Mapping
+## Using the Manual Mapping API in SharpSploit
 
 ```csharp
 
@@ -81,6 +90,9 @@ namespace MapTest
 
 ## Module Overloading
 
+Basically the same as Phantom DLL Hollowing and Module Stumping.
+
+
 ```csharp
 
 using System;
@@ -133,3 +145,9 @@ namespace MapTest
 
 The fact that you have the same module module twice is suspicious. When you choose to overload a random module, it picks one that is not already loaded, is validly signed, and is in System32/SysWOW64.
 [ModuleOverloading.png]
+
+# Detection
+
+Module loads
+
+Memory scanning
