@@ -43,6 +43,10 @@ Ghidra time
 
 ### Parsing the PE Headers
 
+Open up a test DLL with CFFExplorer and walk through the PE format.
+
+
+
 Check that the architecture is compatible with the current process. `PEINFO.Is32Bit`
 
 Copy headers `PEINFO->OptHeader->SizeOfHeaders`
@@ -52,6 +56,20 @@ What other useful information can we find here?
 ### Relocation
 
 All your base are belong to us
+
+Modules sometimes have a preferred memory base. If the module does, then relocate it to there. 
+
+### Virtualization
+
+`.text`: Code
+`.data`
+
+
+#### Alignment
+
+#### Protections
+
+#### Resources
 
 ### 
 
