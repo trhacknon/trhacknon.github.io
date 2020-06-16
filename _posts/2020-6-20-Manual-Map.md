@@ -25,6 +25,8 @@ Libpeconv (hasherezade): https://github.com/hasherezade/libpeconv
 
 Ghidra time
 
+`Ldr*`
+
 
 ## Building a Minimal Loader
 
@@ -40,6 +42,10 @@ Ghidra time
 10) Passing Command Line Parameters
 
 ### Parsing the PE Headers
+
+Check that the architecture is compatible with the current process. `PEINFO.Is32Bit`
+
+Copy headers `PEINFO->OptHeader->SizeOfHeaders`
 
 What other useful information can we find here?
 
