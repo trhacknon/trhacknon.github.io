@@ -19,7 +19,7 @@ Many threat actors
 
 Also in Donut https://github.com/TheWover/donut/blob/master/loader/inmem_pe.c
 
-As usual, hasherezade has a repo: https://github.com/hasherezade/libpeconv
+Libpeconv (hasherezade): https://github.com/hasherezade/libpeconv
 
 ## Understanding the Windows Loader
 
@@ -129,7 +129,7 @@ namespace MapTest
 
 ## Module Overloading
 
-Basically the same as Phantom DLL Hollowing and Module Stumping.
+Basically the same as Phantom DLL Hollowing and Module Stomping. We (hasherezade ) 
 
 
 ```csharp
