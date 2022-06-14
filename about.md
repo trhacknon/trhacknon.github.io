@@ -14,4 +14,4 @@ Twitter: [https://twitter.com/TheRealWover](https://twitter.com/TheRealWover)
 
 Keybase: [https://keybase.io/thewover](https://keybase.io/thewover)
 
-E-Mail: [thewover@protonmail.ch](thewover@protonmail.ch)
+E-Mail: [therealwover@protonmail.com](therealwover@protonmail.com)
