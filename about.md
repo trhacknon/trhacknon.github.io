@@ -6,12 +6,12 @@ permalink: /about/
 
 Red teaming, adversary emulation, and computer security.
 
-RSS Feed: [https://thewover.github.io/rss.xml](https://thewover.github.io/rss.xml)
+RSS Feed: [https://trhacknon.github.io/rss.xml](https://trhacknon.github.io/rss.xml)
 
 ### Contact me
 
-Twitter: [https://twitter.com/TheRealWover](https://twitter.com/TheRealWover)
+Twitter: [https://twitter.com/trhacknon](https://twitter.com/trhacknon)
 
-Keybase: [https://keybase.io/thewover](https://keybase.io/thewover)
+Keybase: [https://keybase.io/trhacknon](https://keybase.io/trhacknon)
 
-E-Mail: [thewover@protonmail.ch](thewover@protonmail.ch)
+E-Mail: [bbatf2590@protonmail.ch](jeremydiliotti@gmail.com )
