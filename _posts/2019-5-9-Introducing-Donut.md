@@ -3,7 +3,7 @@ layout: post
 title: Donut - Injecting .NET Assemblies as Shellcode
 ---
 
-*TLDR: You can now inject .NET Assemblies into Windows processes using this repo: https://github.com/TheWover/donut/*
+*TLDR: You can now inject .NET Assemblies into Windows processes using this repo: https://github.com/trhacknon/donut/*
 
 # Advancing Tradecraft - Context
 
