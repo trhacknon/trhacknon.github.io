@@ -1,11 +1,11 @@
 ==================================================================
-https://keybase.io/thewover
+https://keybase.io/trhacknon
 --------------------------------------------------------------------
 
 I hereby claim:
 
-  * I am an admin of https://thewover.github.io
-  * I am thewover (https://keybase.io/thewover) on keybase.
+  * I am an admin of https://trhacknon.github.io/trhacknon2.github.io 
+  * I am thewover (https://keybase.io/trhacknon) on keybase.
   * I have a public key with fingerprint BB56 08FA 6976 C078 4419  DD32 555E AF97 1A8F C794
 
 To do so, I am signing this object:
@@ -22,7 +22,7 @@ To do so, I am signing this object:
       "username": "thewover"
     },
     "service": {
-      "hostname": "thewover.github.io",
+      "hostname": "trhacknon.github.io",
       "protocol": "https:"
     },
     "type": "web_service_binding",
@@ -63,6 +63,6 @@ T8HixB9tiWjz86UTKPHctql3b3cm/gSkXEjl
 And finally, I am proving ownership of this host by posting or
 appending to this document.
 
-View my publicly-auditable identity here: https://keybase.io/thewover
+View my publicly-auditable identity here: https://keybase.io/trhacknon
 
 ==================================================================
