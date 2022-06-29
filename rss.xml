@@ -3,18 +3,18 @@
 
 <channel>
   <title>The Wover - Blog</title>
-  <link>https://thewover.github.io/</link>
+  <link>https://trhacknon.github.io/</link>
   <description>Red Teaming, .NET, and random computing topics</description>
   
   <item>
     <title>Donut v0.9.1 "Apple Fritter" - Dual-Mode Shellcode, AMSI, and More</title>
-    <link>https://thewover.github.io/Apple-Fritter/</link>
+    <link>https://trhacknon.github.io/Apple-Fritter/</link>
     <description>TLDR: Version v0.9.1 “Apple Fritter” of Donut has been released, including dual-mode (AMD64+x86) shellcode, AMSI bypassing for .NET v4.8, automatic version detection of payloads, and better support for Program.Main().</description>
   </item>
   
   <item>
     <title>Donut - Injecting .NET Assemblies as Shellcode</title>
-    <link>https://thewover.github.io/Introducing-Donut/</link>
+    <link>https://trhacknon.github.io/Introducing-Donut/</link>
     <description>TLDR: You can now inject .NET Assemblies into Windows processes using this repo: https://github.com/TheWover/donut/</description>
   </item>
   
