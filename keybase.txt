@@ -4,7 +4,7 @@ https://keybase.io/trhacknon
 
 I hereby claim:
 
-  * I am an admin of https://trhacknon.github.io/trhacknon2.github.io 
+  * I am an admin of https://trhacknon.github.io/trhacknon.github.io 
   * I am thewover (https://keybase.io/trhacknon) on keybase.
   * I have a public key with fingerprint BB56 08FA 6976 C078 4419  DD32 555E AF97 1A8F C794
 
